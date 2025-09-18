@@ -40,16 +40,29 @@ Now save the script and click "ADD TO CHART"
 2. NOW in right side we have alerts (alaram symbol) click on that
 it looks like this: ![PINE EDITOR](images/alerts_icon.png)
 
+Now click on plus (" + ") ICON a pop up will display . 
+
+select the assets or directly create a watchlist so we can add this to it. 
+
+CONDITION : SEND TO DB (or name what you gave to it..)
+
+SELECT : any alert() function call.
+
+INTERVAL : 5 minutes 
+
+![PINE EDITOR](images/alert_setup.png)
+
 
 3. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
 
 
-3. Run `setup.php` to Setup tables and admin login.
+4. Run `setup.php` to Setup tables and admin login.
    	- this will create all required tables which are required for functioning.
 
+5. Go Back to TRADINGVIEW alerts and in notifications setup using next step.
 
-4. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
+6. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
 
 setup webhook : ![Webhook Setup](images/webhook.png)
 
