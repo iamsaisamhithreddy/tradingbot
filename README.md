@@ -28,7 +28,7 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
 	
 ![PINE EDITOR](images/autosend.png)
 
-	- price near by alerts and disappearing messages (after 2 minutes) to make user alert during trading.
+- price near by alerts and disappearing messages (after 2 minutes) to make user alert during trading.
 
 	
 - when an unauthorised user uses the bot it will be logged and sent to admin.
