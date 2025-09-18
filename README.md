@@ -25,6 +25,9 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 ## How it works
 
+0. First create a bot form https://t.me/BotFather and get token of bot and then update commands there. 
+
+
 1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
 	
 we can find PINE EDITOR in left bottom of tradingview.  
