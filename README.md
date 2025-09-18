@@ -52,7 +52,8 @@ INTERVAL : 5 minutes
 
 ![PINE EDITOR](images/alert_setup.png)  
 
-Click on CREATE.   
+Click on CREATE  .     
+
 
 3. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
