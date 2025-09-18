@@ -25,10 +25,10 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 ## How it works
 
-0. First create a bot form https://t.me/BotFather and get token of bot and then update commands there. 
+Step - 0. First create a bot form https://t.me/BotFather and get token of bot and then update commands there. 
 
 
-1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
+Step - 1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
 	
 we can find PINE EDITOR in left bottom of tradingview.  
 
@@ -39,7 +39,7 @@ Now save the script and click "ADD TO CHART"
 ![PINE EDITOR](images/pinescript_save.png)  
 
 	
-2. NOW in right side we have alerts (alaram symbol) click on that  
+Step - 2. NOW in right side we have alerts (alaram symbol) click on that  
 it looks like this: ![PINE EDITOR](images/alerts_icon.png)  
 
 Now click on plus (" + ") ICON a pop up will display .   
@@ -58,23 +58,23 @@ INTERVAL : 5 minutes
 Click on CREATE  .     
 
 
-3. Set up database connection (`db.php`)
+Step - 3. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
 
 
-4. Run `setup.php` to Setup tables and admin login.
+Step - 4. Run `setup.php` to Setup tables and admin login.
    	- this will create all required tables which are required for functioning.
 
-5. Go Back to TRADINGVIEW alerts and in notifications setup using next step.
+Step - 5. Go Back to TRADINGVIEW alerts and in notifications setup using next step.
 
-6. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
+Step - 6. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
 
 setup webhook : ![Webhook Setup](images/webhook.png)
 
 
-5. Alerts are sent via `tg.php` or `webhook.php`
+Step - 5. Alerts are sent via `tg.php` or `webhook.php`
 
-6. Admin dashboard available via `admin_dashboard.php`
+Step - 6. Admin dashboard available via `admin_dashboard.php`
 
 ## Screenshots
 IMAGE-1 ![WORKING IMAGE1](images/1.png)
