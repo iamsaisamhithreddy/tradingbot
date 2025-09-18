@@ -25,9 +25,11 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
     - GENERATE TOKENS
     - SESSION INFO 
 	- using cron job we send trade,news report at specific time to users.
-	![PINE EDITOR](images/autosend.png)
-	- price near by alerts and disappearing messages (after 2 minutes) to make user alert during trading.
 	
+![PINE EDITOR](images/autosend.png)
+
+	- price near by alerts and disappearing messages (after 2 minutes) to make user alert during trading.
+
 	
 - when an unauthorised user uses the bot it will be logged and sent to admin.
 - from bot itself we can fetch many features such as trade list, session info.
