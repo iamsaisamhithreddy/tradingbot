@@ -37,4 +37,4 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 5. Admin dashboard available via `admin_dashboard.php`
 
 ## Screenshots
-![WEBHOOK SETUP](images/webhook.png)
+![WORKING IMAGE1](images/1.png)
