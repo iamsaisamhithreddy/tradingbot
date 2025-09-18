@@ -31,6 +31,12 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 	it looks like this: ![PINE EDITOR](images/pinescript.png)
 
+Now save the script and click "ADD TO CHART"
+![PINE EDITOR](images/pinescript_save.png)
+
+	
+
+it looks like this: ![PINE EDITOR](images/alerts_icon.png)
 
 
 2. Set up database connection (`db.php`)
