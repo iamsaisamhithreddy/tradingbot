@@ -43,4 +43,5 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 ![DATABASE](images/SQL.png)
 ![ADMIN_DASHBOARD](images/ADMIN_DASHBOARD.png)
 ![TRADE FETCH](images/trade_fetch.png)
+![NEWS EVENTS](images/NEWS.png)
 
