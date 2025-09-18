@@ -17,7 +17,10 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
   	- Send Broadcast mesaages to users 
 	- Trade reports (PDF)
    	- Tables backup
+	
    	- Trade Enquiry
+![PINE EDITOR](images/trade_enquery.png)
+
    	- Live prices
 	- Telegram alerts
 	- User management
