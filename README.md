@@ -27,10 +27,9 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
 	
-	we can find PINE EDITOR in left bottom of tradingview.  
+we can find PINE EDITOR in left bottom of tradingview.  
 
-	it looks like this: ![PINE EDITOR](images/pinescript.png)  
-
+it looks like this: ![PINE EDITOR](images/pinescript.png)  
 
 
 Now save the script and click "ADD TO CHART"  
