@@ -33,13 +33,15 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 3. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
 ![Dashboard](images/webhook.png)
 
+
 4. Alerts are sent via `tg.php` or `webhook.php`
 5. Admin dashboard available via `admin_dashboard.php`
 
 ## Screenshots
-![WORKING IMAGE1](images/1.png)
+WORKING 1 ![WORKING IMAGE1](images/1.png)
 ![WORKING IMAGE2](images/2.png)
 ![WORKING IMAGE3](images/3.png)
+![LIVE CHART IMAGE ](images/LIVECHART.png)
 ![DATABASE](images/SQL.png)
 ![ADMIN_DASHBOARD](images/ADMIN_DASHBOARD.png)
 ![TRADE FETCH](images/trade_fetch.png)
