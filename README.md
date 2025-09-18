@@ -1,13 +1,17 @@
 # Trading Bot
 
-This repository is created for binary trading in 5 minutes time frame, this has many advanced features with web panels.
+This repository is created for binary trading bot in 5 minutes time frame, this has many advanced features with web panels.
 
-This requires "TRADINGVIEW API" so which we can get trail for 30 days. 
+This requires "TRADINGVIEW PLAN" so which we can get trail for 30 days. 
 
-Run the specific pinescipt when an alert triggers it send POST request as JSON.
+Run the pinescipt Provided when an alert triggers it send POST request as JSON.
+
+I'm working on improving this bot, open to collaborations. 
+Currently it works in FOREX currency pairs. looking forward to expand to Crypto and Stock markets.
+
 
 ## Features
-- Sends alerts directly to your telegram account. 
+- Sends alerts directly to your telegram account . 
 - Admin panel with advanced features like :
   	- Add News data
   	- Send Broadcast mesaages to users 
