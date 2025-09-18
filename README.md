@@ -24,19 +24,27 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 - from bot itself we can fetch many features such as trade list, session info.
 
 ## How it works
-1. Set up database connection (`db.php`)
+
+1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.
+	
+	we can find PINE EDITOR in left bottom of tradingview.
+
+	it looks like this: ![PINE EDITOR](pinescript.png)
+
+
+2. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
 
-2. Run `setup.php` to Setup tables and admin login.
+3. Run `setup.php` to Setup tables and admin login.
    	- this will create all required tables which are required for functioning.
 
-3. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
+4. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
 
 setup webhook : ![Webhook Setup](images/webhook.png)
 
 
-4. Alerts are sent via `tg.php` or `webhook.php`
-5. Admin dashboard available via `admin_dashboard.php`
+5. Alerts are sent via `tg.php` or `webhook.php`
+6. Admin dashboard available via `admin_dashboard.php`
 
 ## Screenshots
 IMAGE-1 ![WORKING IMAGE1](images/1.png)
