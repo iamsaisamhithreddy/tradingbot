@@ -33,7 +33,9 @@ Step - 0. First create a bot form https://t.me/BotFather and get token of bot an
 
 setup webhook to bot: 
 https://api.telegram.org/bot"BOT_TOKEN_LIKE_1234:ABCDEFGH"/setWebhook?url= "YOUR_WEBSITE/webhook.php"
-remove " when using . 
+
+
+remove "" when using . 
 
 
 Step - 1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
