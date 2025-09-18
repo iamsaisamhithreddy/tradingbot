@@ -31,6 +31,8 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
 
 Step - 0. First create a bot form https://t.me/BotFather and get token of bot and then update commands there. 
 
+setup webhook to bot: https://api.telegram.org/bot"BOT TOKEN LIKE 1234:ABCDEFGH"/setWebhook?url=https://yourwebsite/webhook.php
+
 
 Step - 1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
 	
@@ -113,4 +115,5 @@ TRADE FTECH PAGE ![TRADE FETCH](images/trade_fetch.png)
 
 
 NEWS EVENTS PAGE ![NEWS EVENTS](images/NEWS.png)
+
 
