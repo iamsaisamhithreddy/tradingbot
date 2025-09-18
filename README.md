@@ -38,9 +38,9 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 5. Admin dashboard available via `admin_dashboard.php`
 
 ## Screenshots
-WORKING 1 ![WORKING IMAGE1](images/1.png)
-![WORKING IMAGE2](images/2.png)
-![WORKING IMAGE3](images/3.png)
+IMAGE-1 ![WORKING IMAGE1](images/1.png)
+IMAGE- BOT COMMAND LIST ![WORKING IMAGE2](images/2.png)
+TRADES LIST PDF  ![WORKING IMAGE3](images/3.png)
 ![LIVE CHART IMAGE ](images/LIVECHART.png)
 ![DATABASE](images/SQL.png)
 ![ADMIN_DASHBOARD](images/ADMIN_DASHBOARD.png)
