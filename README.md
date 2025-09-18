@@ -31,15 +31,17 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 	it looks like this: ![PINE EDITOR](images/pinescript.png)
 
+
+
 Now save the script and click "ADD TO CHART"
 ![PINE EDITOR](images/pinescript_save.png)
 
 	
-
+2. NOW in right side we have alerts (alaram symbol) click on that
 it looks like this: ![PINE EDITOR](images/alerts_icon.png)
 
 
-2. Set up database connection (`db.php`)
+3. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
 
 
