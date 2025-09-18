@@ -15,11 +15,13 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
 - Admin panel with advanced features like :
   	- Add News data
   	- Send Broadcast mesaages to users 
+![BROADCAST IMAGE](images/broadcast.png)
+	
 	- Trade reports (PDF)
    	- Tables backup
-	
+
    	- Trade Enquiry
-![PINE EDITOR](images/trade_enquery.png)
+![TRADE ENQUERY](images/trade_enquery.png)
 
    	- Live prices
 	- Telegram alerts
@@ -27,11 +29,11 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
  	- Webhook to telegram using API
     - GENERATE TOKENS
     - SESSION INFO 
-![PINE EDITOR](images/session_info.png)
+![SESSION INFO](images/session_info.png)
 
 	- using cron job we send trade,news report at specific time to users.
 	
-![PINE EDITOR](images/autosend.png)
+![AUTO SEND](images/autosend.png)
 
 - price near by alerts and disappearing messages (after 2 minutes) to make user alert during trading.
 
