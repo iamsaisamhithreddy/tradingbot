@@ -58,6 +58,7 @@ SELECT : any alert() function call.
 INTERVAL : 5 minutes   
 
 ![PINE EDITOR](images/alert_setup.png)  
+ 
 
 Click on CREATE  .     
 
@@ -77,6 +78,17 @@ setup webhook : ![Webhook Setup](images/webhook.png)
 
 
 Step - 5. Alerts are sent via `tg.php` or `webhook.php`
+
+Step -6. Exexute the python file `news.py`  
+it will create a file 'economic_calendar.txt' this will scrape from investing.com website.
+
+![PINE EDITOR](images/news_scraping.png)   
+
+
+Step -7.  Now to add news select the genrated file and click on process data, it will add to database. 
+![ADD NEWS](images/add_news.png)
+
+
 
 Step - 6. Admin dashboard available via `admin_dashboard.php`
 
