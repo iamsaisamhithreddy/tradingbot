@@ -31,7 +31,8 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
 
 Step - 0. First create a bot form https://t.me/BotFather and get token of bot and then update commands there. 
 
-setup webhook to bot: api.telegram.org/bot"BOT_TOKEN LIKE 1234:ABCDEFGH"/setWebhook?url= "YOUR WEBSITE/webhook.php"
+setup webhook to bot: 
+https://api.telegram.org/bot"BOT_TOKEN_LIKE_1234:ABCDEFGH"/setWebhook?url= "YOUR_WEBSITE/webhook.php"
 remove " when using . 
 
 
