@@ -31,7 +31,8 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
    	- this will create all required tables which are required for functioning.
 
 3. use TRADINGVIEW webhookURL and set "yourwebsite.site/receiver.php" 
-![Dashboard](images/webhook.png)
+
+setup webhook : ![Webhook Setup](images/webhook.png)
 
 
 4. Alerts are sent via `tg.php` or `webhook.php`
@@ -39,11 +40,18 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 ## Screenshots
 IMAGE-1 ![WORKING IMAGE1](images/1.png)
+
 IMAGE- BOT COMMAND LIST ![WORKING IMAGE2](images/2.png)
+
 TRADES LIST PDF  ![WORKING IMAGE3](images/3.png)
-![LIVE CHART IMAGE ](images/LIVECHART.png)
-![DATABASE](images/SQL.png)
-![ADMIN_DASHBOARD](images/ADMIN_DASHBOARD.png)
-![TRADE FETCH](images/trade_fetch.png)
-![NEWS EVENTS](images/NEWS.png)
+
+LIVE CHART IMAGE ![LIVE CHART IMAGE ](images/LIVECHART.png)
+
+BACKEND SQL OVERVIEW ![DATABASE](images/SQL.png)
+
+ADMIN DASHBOARD ![ADMIN_DASHBOARD](images/ADMIN_DASHBOARD.png)
+
+TRADE FTECH PAGE ![TRADE FETCH](images/trade_fetch.png)
+
+NEWS EVENTS PAGE ![NEWS EVENTS](images/NEWS.png)
 
