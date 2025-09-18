@@ -24,6 +24,8 @@ Currently it works in FOREX currency pairs. looking forward to expand to Crypto 
  	- Webhook to telegram using API
     - GENERATE TOKENS
     - SESSION INFO 
+![PINE EDITOR](images/session_info.png)
+
 	- using cron job we send trade,news report at specific time to users.
 	
 ![PINE EDITOR](images/autosend.png)
