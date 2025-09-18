@@ -25,33 +25,35 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 
 ## How it works
 
-1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.
+1. First use the code in pinescript.txt copy the code (as it is beacuse its like python need indentation) and add to chart in tradingview.  
 	
-	we can find PINE EDITOR in left bottom of tradingview.
+	we can find PINE EDITOR in left bottom of tradingview.  
 
-	it looks like this: ![PINE EDITOR](images/pinescript.png)
+	it looks like this: ![PINE EDITOR](images/pinescript.png)  
 
 
 
-Now save the script and click "ADD TO CHART"
-![PINE EDITOR](images/pinescript_save.png)
+Now save the script and click "ADD TO CHART"  
+![PINE EDITOR](images/pinescript_save.png)  
 
 	
-2. NOW in right side we have alerts (alaram symbol) click on that
-it looks like this: ![PINE EDITOR](images/alerts_icon.png)
+2. NOW in right side we have alerts (alaram symbol) click on that  
+it looks like this: ![PINE EDITOR](images/alerts_icon.png)  
 
-Now click on plus (" + ") ICON a pop up will display . 
+Now click on plus (" + ") ICON a pop up will display .   
 
-select the assets or directly create a watchlist so we can add this to it. 
+select the assets or directly create a watchlist so we can add this to it.   
 
-CONDITION : SEND TO DB (or name what you gave to it..)
 
-SELECT : any alert() function call.
+CONDITION : SEND TO DB (or name what you gave to it..)  
 
-INTERVAL : 5 minutes 
+SELECT : any alert() function call.  
 
-![PINE EDITOR](images/alert_setup.png)
+INTERVAL : 5 minutes   
 
+![PINE EDITOR](images/alert_setup.png)  
+
+Click on CREATE.   
 
 3. Set up database connection (`db.php`)
    	- add server deatils and bot token and admin chat id 
