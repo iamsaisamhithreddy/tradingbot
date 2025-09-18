@@ -29,7 +29,7 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 	
 	we can find PINE EDITOR in left bottom of tradingview.
 
-	it looks like this: ![PINE EDITOR](pinescript.png)
+	it looks like this: ![PINE EDITOR](images/pinescript.png)
 
 
 2. Set up database connection (`db.php`)
