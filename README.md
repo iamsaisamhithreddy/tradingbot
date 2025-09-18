@@ -40,4 +40,5 @@ Run the specific pinescipt when an alert triggers it send POST request as JSON.
 ![WORKING IMAGE1](images/1.png)
 ![WORKING IMAGE2](images/2.png)
 ![WORKING IMAGE3](images/3.png)
+![DATABASE](images/SQL.png)
 
