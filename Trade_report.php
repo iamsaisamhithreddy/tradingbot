@@ -8,7 +8,7 @@
 
 session_start();
 
-// Only admins can access 
+// ✅ Restrict to admins only
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header("Location: login.php"); // redirect to login page
     exit;
@@ -70,10 +70,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $endDate   = $_POST['end_date'] ?? '';
 
     if ($startDate && $endDate) {
-        $conn = new mysqli($db_host, $db_user, $db_pass, $db_name);
-        if ($conn->connect_error) {
-            die("DB connection failed: " . $conn->connect_error);
-        }
 
         // Detect MySQL server timezone
         $tzResult = $conn->query("SELECT @@global.time_zone AS global_tz, @@session.time_zone AS session_tz");
@@ -203,12 +199,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdf->Ln(5);
             $pdf->SetFont('Arial','U',10);
             $pdf->SetTextColor(0,0,255);
-            $url = "https:t.me/sasmhithstradingbot"; // my bot telegram username.
-            $pdf->Cell(0,6,"Telegram Bot Link",0,1,'C',false,$url);  
-            $url = "https://www.linkedin.com/in/saisamhithreddy/"; // my linkedin profile
+            $url = "https:t.me/sasmhithstradingbot";
+            $pdf->Cell(0,6,"Telegram Bot Link",0,1,'C',false,$url);
+            $url = "https://www.linkedin.com/in/saisamhithreddy/";
             $pdf->Cell(0,6,"Linkedin Profile",0,1,'C',false,$url);
 
-            $fileName = "trades_".$startDate."_to_".$endDate.".pdf"; // file name format. 
+            $fileName = "trades_".$startDate."_to_".$endDate.".pdf";
             $pdf->Output('D', $fileName);
         } else {
             echo "<p>No trades found between $startDate and $endDate.</p>";
