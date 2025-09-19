@@ -27,6 +27,20 @@ CREATE TABLE admin_users (
 ) ENGINE=InnoDB;
 ";
 
+$tables['scheduled_broadcasts'] = "
+CREATE TABLE scheduled_broadcasts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    message TEXT NOT NULL,
+    send_type ENUM('all','selected') DEFAULT 'all',
+    user_ids TEXT,
+    scheduled_time DATETIME NOT NULL,
+    sent_status TINYINT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+)
+ENGINE=InnoDB;
+";
+
+
 $tables['economic_events'] = "
 CREATE TABLE economic_events (
     id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
