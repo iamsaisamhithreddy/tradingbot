@@ -4,7 +4,7 @@
 // LEETCODE : https://leetcode.com/u/iamsaisamhithreddy/
 // GITHUB : https://github.com/iamsaisamhithreddy
 
-require 'db.php'; // Make sure db.php defines $conn as mysqli connection
+require 'db.php'; 
 
 $tables = [];
 
@@ -31,10 +31,10 @@ $tables['scheduled_broadcasts'] = "
 CREATE TABLE scheduled_broadcasts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     message TEXT NOT NULL,
-    send_type ENUM('all','selected') DEFAULT 'all',
-    user_ids TEXT,
+    send_type ENUM('all','selected') NOT NULL DEFAULT 'all',
+    user_ids TEXT DEFAULT 'all',
     scheduled_time DATETIME NOT NULL,
-    sent_status TINYINT DEFAULT 0,
+    sent TINYINT(1) NOT NULL DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )
 ENGINE=InnoDB;
