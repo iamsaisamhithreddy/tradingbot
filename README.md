@@ -102,6 +102,9 @@ Step - 8. Alerts are sent via `tg.php` or `webhook.php`
 
 Step -9. Exexute the python file `news.py`  
 it will create a file 'economic_calendar.txt' this will scrape from investing.com website.
+   
+NOTE: it is based on GMT -4:00 so after 9:30 AM (IST) we get new data in the file. so run it after 9:30 AM IST.
+
 
 ![PINE EDITOR](images/news_scraping.png)   
 
