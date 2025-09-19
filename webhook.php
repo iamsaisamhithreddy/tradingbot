@@ -89,6 +89,18 @@ if(isset($update_array['message'])){
         sendMessage($chatId,$msg,true);
     }
     
+    elseif($text=='/faq'){
+        $msg = "THIS IS FAQ PAGE.. NEED UPDATE";
+        sendMessage($chatId,$msg,true);
+        
+    }
+    
+    elseif($text=='/learn'){
+        $msg = "Welcome to Trading. we'll update this page in future. ";
+        sendMessage($chatId,$msg,true);
+        
+    }
+    
     elseif($text=='/trades'){
         // --- We determined DB timestamps behave like UTC+08:00 ---
         $SOURCE_TZ = '+08:00';      
