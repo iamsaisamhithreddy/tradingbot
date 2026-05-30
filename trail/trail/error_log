@@ -1,0 +1,10 @@
+[01-Jan-2026 10:26:23 UTC] PHP Warning:  include(db.php): failed to open stream: No such file or directory in /home/sairedd1/public_html/trail/trail/index.php on line 1
+[01-Jan-2026 10:26:23 UTC] PHP Warning:  include(): Failed opening 'db.php' for inclusion (include_path='.:/opt/alt/php74/usr/share/pear') in /home/sairedd1/public_html/trail/trail/index.php on line 1
+[01-Jan-2026 15:56:23 Asia/Kolkata] PHP Notice:  Undefined variable: conn in /home/sairedd1/public_html/trail/trail/index.php on line 68
+[01-Jan-2026 15:56:23 Asia/Kolkata] PHP Fatal error:  Uncaught Error: Call to a member function query() on null in /home/sairedd1/public_html/trail/trail/index.php:68
+Stack trace:
+#0 {main}
+  thrown in /home/sairedd1/public_html/trail/trail/index.php on line 68
+[26-Jan-2026 09:14:13 UTC] PHP Notice:  Undefined variable: totalPending in /home/sairedd1/public_html/trail/trail/index.php on line 67
+[26-Jan-2026 09:14:51 UTC] PHP Notice:  Undefined variable: totalPending in /home/sairedd1/public_html/trail/trail/index.php on line 67
+[26-Jan-2026 09:14:56 UTC] PHP Notice:  Undefined variable: totalPending in /home/sairedd1/public_html/trail/trail/index.php on line 67

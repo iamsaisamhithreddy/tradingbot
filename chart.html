@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Chart Renderer</title>
+    <script src="https://unpkg.com/lightweight-charts@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; overflow: hidden; background-color: #ffffff; }
+        #chart-container { width: 100vw; height: 100vh; }
+        #loading { position: absolute; top: 20px; left: 20px; font-family: sans-serif; z-index: 100; }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading Data...</div>
+    <div id="chart-container"></div>
+
+    <script>
+        const chartContainer = document.getElementById('chart-container');
+        const loadingDiv = document.getElementById('loading');
+        
+        // 1. Initialize Chart
+        const chart = LightweightCharts.createChart(chartContainer, {
+            width: chartContainer.clientWidth,
+            height: chartContainer.clientHeight,
+            layout: { backgroundColor: '#ffffff', textColor: '#333' },
+            grid: { vertLines: { color: '#f0f0f0' }, horzLines: { color: '#f0f0f0' } },
+            rightPriceScale: { borderColor: '#d1d4dc' },
+            timeScale: { borderColor: '#d1d4dc', timeVisible: true }
+        });
+
+        const candlestickSeries = chart.addCandlestickSeries({
+            upColor: '#089981', downColor: '#F23645',
+            borderUpColor: '#089981', borderDownColor: '#F23645',
+            wickUpColor: '#089981', wickDownColor: '#F23645'
+        });
+
+        // 2. Get CSV filename from URL parameter ?file=...
+        const urlParams = new URLSearchParams(window.location.search);
+        const fileName = urlParams.get('file');
+
+        if(fileName) {
+            fetch(fileName)
+            .then(response => {
+                if (!response.ok) throw new Error("CSV not found");
+                return response.text();
+            })
+            .then(csvText => {
+                // 3. Parse CSV
+                const results = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+                const data = results.data;
+                
+                const candles = [];
+                const markers = [];
+
+                data.forEach(row => {
+                    // Clean keys (trim whitespace, lowercase)
+                    const r = {};
+                    Object.keys(row).forEach(k => r[k.trim().toLowerCase()] = row[k]);
+                    
+                    if(!r.time || !r.open) return;
+
+                    // Parse Time (Handle Unix Timestamp or Date String)
+                    let time = r.time;
+                    // If it looks like a date string (has - or /), convert to unix
+                    if(isNaN(time) || (typeof time === 'string' && (time.includes('-') || time.includes('/')))) {
+                        time = new Date(time).getTime() / 1000;
+                    } else {
+                        time = parseFloat(time);
+                    }
+
+                    const open = parseFloat(r.open);
+                    const high = parseFloat(r.high);
+                    const low = parseFloat(r.low);
+                    const close = parseFloat(r.close);
+
+                    candles.push({ time, open, high, low, close });
+
+                    // --- PATTERN LOGIC: "Big Drop" Arrow ---
+                    // Logic: If Close is 1% lower than Open
+                    if (close < open * 0.99) { 
+                        markers.push({
+                            time: time,
+                            position: 'aboveBar',
+                            color: '#F23645',
+                            shape: 'arrowDown',
+                            text: 'Drop'
+                        });
+                    }
+                });
+
+                // 4. Update Chart
+                candlestickSeries.setData(candles);
+                candlestickSeries.setMarkers(markers);
+                chart.timeScale().fitContent();
+                loadingDiv.style.display = 'none'; // Hide loading text
+            })
+            .catch(err => {
+                loadingDiv.innerText = "Error: " + err.message;
+            });
+        } else {
+            loadingDiv.innerText = "No file specified in URL.";
+        }
+    </script>
+</body>
+</html>

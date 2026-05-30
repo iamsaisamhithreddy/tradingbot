@@ -1,0 +1,122 @@
+import asyncio
+import time
+import requests
+from datetime import datetime, timedelta
+from playwright.async_api import async_playwright
+
+FF_CAL_URL = "https://www.forexfactory.com/calendar"
+POST_ENDPOINT = "https://WESBITE DOMAIN NAME/insert_event.php"
+
+IST_OFFSET = timedelta(hours=5, minutes=30)
+
+IMPACT_MAP = {
+    "low": 1,
+    "medium": 2,
+    "high": 3,
+    "holiday": 0
+}
+
+USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) "
+    "Chrome/120.0.0.0 Safari/537.36"
+)
+
+# =========================
+# Fetch JS state via browser
+# =========================
+async def fetch_states():
+    print("🚀 Launching browser (Cloudflare-safe)...")
+
+    async with async_playwright() as p:
+        browser = await p.chromium.launch(
+            headless=True,
+            args=["--disable-blink-features=AutomationControlled"]
+        )
+
+        context = await browser.new_context(
+            user_agent=USER_AGENT,
+            viewport={"width": 1366, "height": 768}
+        )
+
+        page = await context.new_page()
+
+        await page.goto(
+            FF_CAL_URL,
+            wait_until="domcontentloaded",
+            timeout=90000
+        )
+
+        await page.wait_for_function(
+            "window.calendarComponentStates !== undefined",
+            timeout=30000
+        )
+
+        states = await page.evaluate("() => window.calendarComponentStates")
+        await browser.close()
+
+        return states
+
+
+# =========================
+# Parse events (CORRECT PATH)
+# =========================
+def parse_events(states):
+    events = []
+
+    if not states or "1" not in states:
+        print("❌ calendarComponentStates['1'] not found")
+        return events
+
+    days = states["1"].get("days", [])
+
+    for day in days:
+        for e in day.get("events", []):
+            name = e.get("soloTitle") or e.get("name")
+            currency = e.get("currency")
+            impact_name = e.get("impactName", "low")
+            timestamp = e.get("dateline")  # UNIX seconds
+
+            if not (name and currency and timestamp):
+                continue
+
+            # Convert UTC → IST
+            dt_utc = datetime.utcfromtimestamp(timestamp)
+            dt_ist = dt_utc + IST_OFFSET
+
+            events.append({
+                "event_name": f"[{currency}] {name}",
+                "impact": IMPACT_MAP.get(impact_name, 1),
+                "event_time": dt_ist.strftime("%Y-%m-%d %H:%M:%S"),
+                "sent_status": 0
+            })
+
+    return events
+
+
+# =========================
+# Send to DB
+# =========================
+def send_to_db(events):
+    print(f"📌 EVENTS FOUND: {len(events)}")
+
+    for e in events:
+        try:
+            r = requests.post(POST_ENDPOINT, data=e, timeout=10)
+            print(f"✅ Sent: {e['event_name']} @ {e['event_time']}")
+            time.sleep(0.2)
+        except Exception as ex:
+            print(f"❌ Failed: {e['event_name']} | {ex}")
+
+
+# =========================
+# MAIN
+# =========================
+async def main():
+    states = await fetch_states()
+    events = parse_events(states)
+    send_to_db(events)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

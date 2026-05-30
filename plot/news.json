@@ -1,0 +1,8 @@
+[
+  { "time": 1761734400, "currency": "JPY", "impact": 2, "event": "Household Confidence (Oct)" },
+  { "time": 1761742800, "currency": "EUR", "impact": 2, "event": "Spanish GDP (QoQ) (Q3)" },
+  { "time": 1761746400, "currency": "GBP", "impact": 3, "event": "BoE Consumer Credit (Sep)" },
+  { "time": 1761748800, "currency": "USD", "impact": 3, "event": "Crude Oil Inventories" },
+  { "time": 1761750000, "currency": "USD", "impact": 3, "event": "FOMC Rate Decision" },
+  { "time": 1761750600, "currency": "JPY", "impact": 3, "event": "BoJ Interest Rate Decision" }
+]
