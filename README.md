@@ -1,6 +1,6 @@
 # 🚀 Trading Bot — Advanced Binary Trading Automation Platform
 
-An advanced TradingView-powered binary trading automation platform with Telegram integration, AI-assisted trade evaluation, admin dashboard, live alerts, economic news filtering, analytics, and user management.
+An advanced TradingView-powered binary trading automation platform with Telegram integration, AI-assisted trade evaluation, admin dashboard, live alerts, analytics, webhook automation, and user management.
 
 Built primarily for **FOREX currency pairs** on the **5-minute timeframe**, with future expansion planned for:
 
@@ -196,7 +196,6 @@ Track and manage user trade requests.
 Using cron jobs:
 
 * Trade reports
-* Economic news reports
 * Scheduled broadcasts
 * Session cleanup
 * Automated analytics
@@ -378,15 +377,15 @@ admin_dashboard.php
 
 ---
 
-# Step 10 — Economic News Integration
+# Step 10 — Economic Calendar Integration
 
-execute this scrapes economic calendar data using GitHub actions:
+Execute this GitHub Actions-based economic calendar scraper:
+
 ```text
 https://github.com/iamsaisamhithreddy/economic-calendar-bot
 ```
 
----
-
+This automatically fetches and processes economic event data.
 
 ---
 
@@ -394,15 +393,19 @@ https://github.com/iamsaisamhithreddy/economic-calendar-bot
 
 ## 🤖 Bot Command List
 
-![Bot Commands](
-images/2-1.png) 
-(images/2-2.png)
+### Command List - Page 1
+
+![Bot Commands 1](images/2-1.png)
+
+### Command List - Page 2
+
+![Bot Commands 2](images/2-2.png)
 
 ---
 
 ## 📊 Admin Dashboard
 
-![Admin Dashboard](images/ADMIN_DASHBOARD.png)
+![Admin Dashboard](images/ADMIN_DASHBOARD-1.png)
 
 ---
 
@@ -433,6 +436,68 @@ images/2-1.png)
 ## 📡 Session Information
 
 ![Session Info](images/session_info.png)
+
+---
+
+## 🧠 AI Telegram Integration
+
+![AI Integration](images/ai_telegram.png)
+
+---
+
+## 📢 Broadcast Messaging
+
+![Broadcast Messages](images/Broadcast.png)
+
+---
+
+## 🔑 API Manager
+
+![API Manager](images/Ai_Api_KeysManager.png)
+
+---
+
+## 📊 Auto Trade Evaluation
+
+![Auto Trade Evaluation](images/AutoTrade_Evaluation.png)
+
+---
+
+## 📈 Trade Enquiry
+
+![Trade Enquery](images/Trade_Enquery.png)
+
+---
+
+## ⚙️ Initial Setup
+
+![Initial Setup](images/InitialSetup.png)
+
+---
+
+## ⏰ Auto Send / Cron Jobs
+
+![Auto Send](images/autosend.png)
+
+---
+
+## 📡 Webhook Setup
+
+![Webhook Setup](images/webhook.png)
+
+---
+
+## 📝 Pine Editor
+
+![Pine Editor](images/pinescript.png)
+
+![Save Pine Script](images/pinescript_save.png)
+
+---
+
+## 🚨 Alert Setup
+
+![Alert Setup](images/alert_setup.png)
 
 ---
 
