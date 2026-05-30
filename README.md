@@ -380,35 +380,13 @@ admin_dashboard.php
 
 # Step 10 — Economic News Integration
 
-Run:
-
-```bash
-python news.py
-```
-
-This scrapes economic calendar data and generates:
-
+execute this scrapes economic calendar data using GitHub actions:
 ```text
-economic_calendar.txt
+https://github.com/iamsaisamhithreddy/economic-calendar-bot
 ```
-
-⚠️ Run after **9:30 AM IST** because data refresh timing depends on GMT -4 timezone.
-
-![News Scraping](images/news_scraping.png)
 
 ---
 
-# Step 11 — Import Economic News Data
-
-Upload generated news file from the dashboard.
-
-Click:
-
-```text
-Process Data
-```
-
-![Add News](images/add_news.png)
 
 ---
 
