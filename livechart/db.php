@@ -1,15 +1,15 @@
 <?php
 
 $servername = "localhost";        
-$username   = "sairedd1_sai";     
-$password   = "saireddyA1@#$";    
-$dbname     = "sairedd1_trading"; 
+$username   = "";     
+$password   = "";    
+$dbname     = ""; 
 
 $WebsiteURL = 'https://saireddy.site';
 
-$botToken    = "8065156652:AAHrE8sh2w8F8LXtBePwPgI8sSicBWrCqio"; 
-$adminChatId = "655708526"; 
-$witAiToken = 'RWG6LN52R44VEONELKE4C4VV7D67F3PN'; 
+$botToken    = "TELEGRAM BOT TOKEN"; 
+$adminChatId = "TELEGRAM ADMINCHAT ID"; 
+$witAiToken = 'WIT AI TOKEN'; 
 $witVersion = '20240304';
 
 $cooldownSeconds = 30; //cooldown time in seconds
