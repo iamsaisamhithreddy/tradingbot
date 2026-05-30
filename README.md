@@ -394,7 +394,9 @@ https://github.com/iamsaisamhithreddy/economic-calendar-bot
 
 ## 🤖 Bot Command List
 
-![Bot Commands](images/2.png)
+![Bot Commands](
+images/2-1.png) 
+(images/2-2.png)
 
 ---
 
