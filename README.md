@@ -19,6 +19,92 @@ Built primarily for **FOREX currency pairs** on the **5-minute timeframe**, with
 * Multi-pair monitoring
 * Automated signal processing
 * 5-minute timeframe optimization
+* OHLC/Candle data processing
+* AI-assisted signal validation
+
+---
+
+# ⚙️ Candle Data Configuration Methods
+
+The bot supports **two different candle/OHLC data configuration methods** depending on the trading workflow.
+
+---
+
+## Method 1 — TradingView Webhook Configuration (Recommended)
+
+TradingView directly sends candle and signal data using Pine Script alerts.
+
+### Workflow
+
+```text
+TradingView Pine Script
+        ↓
+alert()
+        ↓
+TradingView Webhook
+        ↓
+receiver.php
+        ↓
+PHP Backend
+        ↓
+Telegram Alerts
+```
+
+### Features
+
+* Real-time candle processing
+* Fast execution
+* Stable production workflow
+* Lightweight backend processing
+* Recommended for live trading
+
+### Webhook Setup
+
+Use inside TradingView alerts:
+
+```text
+https://YOUR_DOMAIN/receiver.php
+```
+
+![Webhook Setup](images/webhook.png)
+
+---
+
+## Method 2 — External API / ForexFactory Configuration
+
+This method allows integration of:
+
+* external candle feeds
+* economic event filtering
+* AI validation
+* external APIs
+
+### Workflow
+
+```text
+External APIs / ForexFactory
+        ↓
+Backend Processing
+        ↓
+AI Evaluation
+        ↓
+Trade Filtering
+        ↓
+Telegram Alerts
+```
+
+### Features
+
+* Advanced validation
+* AI-enhanced filtering
+* News-aware trading
+* Multi-source verification
+
+### Recommended For
+
+* Advanced traders
+* Experimental strategies
+* AI-assisted workflows
 
 ---
 
@@ -28,14 +114,17 @@ Built primarily for **FOREX currency pairs** on the **5-minute timeframe**, with
 
 * Instant trade alerts
 * Price-nearby notifications
-* Disappearing alert messages (auto-delete after 2 minutes)
+* Auto-delete messages after 2 minutes
 * Unauthorized user detection
 * Session information commands
 * Trade history retrieval
 * AI-integrated alerts
 * Broadcast messaging system
+* Trade enquiry access
 
-### AI Telegram Integration
+---
+
+## 🧠 AI Telegram Integration
 
 ![AI Integration](images/ai_telegram.png)
 
@@ -54,6 +143,8 @@ Built primarily for **FOREX currency pairs** on the **5-minute timeframe**, with
 * Database backup tools
 * Broadcast controls
 * Trade analytics
+* Auto trade evaluation
+* AI integration panel
 
 ---
 
@@ -89,16 +180,6 @@ Track and manage user trade requests.
 
 ---
 
-# 🧠 AI Integration Features
-
-* AI-assisted trade evaluation
-* Smart filtering logic
-* News-aware trade filtering
-* Telegram AI integration
-* Future AI learning system planned
-
----
-
 # 🔐 Security Features
 
 * Unauthorized access logging
@@ -106,6 +187,7 @@ Track and manage user trade requests.
 * Token-based authentication
 * Webhook validation
 * Session tracking
+* API key protection
 
 ---
 
@@ -118,6 +200,7 @@ Using cron jobs:
 * Scheduled broadcasts
 * Session cleanup
 * Automated analytics
+* Alert management
 
 ![Auto Send](images/autosend.png)
 
@@ -125,7 +208,19 @@ Using cron jobs:
 
 # 🖥️ System Architecture
 
-TradingView → Webhook → PHP Backend → Database → Telegram Bot → User Alerts
+```text
+TradingView
+      ↓
+Webhook Receiver
+      ↓
+PHP Backend
+      ↓
+Database
+      ↓
+Telegram Bot
+      ↓
+User Alerts
+```
 
 ---
 
@@ -160,9 +255,11 @@ Complete the initial configuration and server setup.
 
 Open:
 
+```text
 https://t.me/BotFather
+```
 
-Create a new bot and obtain:
+Create a bot and obtain:
 
 * Bot Token
 * Bot Username
@@ -187,9 +284,15 @@ Copy the code from:
 pinescript.txt
 ```
 
-Open TradingView → Pine Editor → Paste Script.
+Open:
 
-Save and click:
+```text
+TradingView → Pine Editor
+```
+
+Paste the script.
+
+Click:
 
 ```text
 Add To Chart
@@ -263,8 +366,6 @@ Use:
 https://YOUR_DOMAIN/receiver.php
 ```
 
-![Webhook Setup](images/webhook.png)
-
 ---
 
 # Step 9 — Launch Admin Dashboard
@@ -285,13 +386,13 @@ Run:
 python news.py
 ```
 
-This scrapes economic calendar data from Investing.com and generates:
+This scrapes economic calendar data and generates:
 
 ```text
 economic_calendar.txt
 ```
 
-⚠️ Run after **9:30 AM IST** because data refreshes based on GMT -4 timezone.
+⚠️ Run after **9:30 AM IST** because data refresh timing depends on GMT -4 timezone.
 
 ![News Scraping](images/news_scraping.png)
 
@@ -306,8 +407,6 @@ Click:
 ```text
 Process Data
 ```
-
-This imports all events into the database.
 
 ![Add News](images/add_news.png)
 
