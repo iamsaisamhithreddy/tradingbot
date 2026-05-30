@@ -1,0 +1,87 @@
+//@version=5
+indicator("SEND TO DB", overlay=true)
+
+var int streak = 0
+var bool streakBullish = na
+var float streakOpen = na
+var int oppositeCount = 0
+var bool waitingForConfirmation = false
+var bool alertTriggered = false
+
+// Candle direction
+isGreen = close > open
+isRed = close < open
+thisBullish = isGreen
+
+// Reset alert each bar
+alertTriggered := false
+
+if not waitingForConfirmation
+    if streak == 0
+        streak := 1
+        streakBullish := thisBullish
+        streakOpen := open
+    else if thisBullish == streakBullish
+        streak += 1
+        streakOpen := open
+    else
+        if streak >= 4
+            waitingForConfirmation := true
+            oppositeCount := 1
+            if (streakBullish and low <= streakOpen) or (not streakBullish and high >= streakOpen)
+                streak := 1
+                streakBullish := thisBullish
+                streakOpen := open
+                waitingForConfirmation := false
+                oppositeCount := 0
+        else
+            streak := 1
+            streakBullish := thisBullish
+            streakOpen := open
+else
+    if thisBullish != streakBullish
+        oppositeCount += 1
+        if oppositeCount > 2
+            streak := 1
+            streakBullish := thisBullish
+            waitingForConfirmation := false
+            oppositeCount := 0
+            streakOpen := open
+    else
+        if oppositeCount == 2
+            if (streakBullish and low <= streakOpen) or (not streakBullish and high >= streakOpen)
+                streak := 1
+                streakBullish := thisBullish
+                waitingForConfirmation := false
+                oppositeCount := 0
+                streakOpen := open
+            else
+                alertTriggered := true
+                streak := 1
+                streakBullish := thisBullish
+                waitingForConfirmation := false
+                oppositeCount := 0
+                streakOpen := open
+        else if oppositeCount == 1
+            alertTriggered := true
+            streak := 1
+            streakBullish := thisBullish
+            waitingForConfirmation := false
+            oppositeCount := 0
+            streakOpen := open
+
+// Plot shape on chart
+plotshape(alertTriggered, title="Pattern Alert", location=location.abovebar, style=shape.labelup, color=color.orange, size=size.small, text="ALERT")
+
+
+json_payload = '{"ticker":"' + syminfo.ticker + '","time":"' + str.tostring(time, "yyyy-MM-dd HH:mm") + '","ohlc":[' +
+               '{"O":' + str.tostring(open[4]) + ',"H":' + str.tostring(high[4]) + ',"L":' + str.tostring(low[4]) + ',"C":' + str.tostring(close[4]) + '},' +
+               '{"O":' + str.tostring(open[3]) + ',"H":' + str.tostring(high[3]) + ',"L":' + str.tostring(low[3]) + ',"C":' + str.tostring(close[3]) + '},' +
+               '{"O":' + str.tostring(open[2]) + ',"H":' + str.tostring(high[2]) + ',"L":' + str.tostring(low[2]) + ',"C":' + str.tostring(close[2]) + '},' +
+               '{"O":' + str.tostring(open[1]) + ',"H":' + str.tostring(high[1]) + ',"L":' + str.tostring(low[1]) + ',"C":' + str.tostring(close[1]) + '},' +
+               '{"O":' + str.tostring(open) + ',"H":' + str.tostring(high) + ',"L":' + str.tostring(low) + ',"C":' + str.tostring(close) + '}' +
+               ']}'
+
+// Trigger alert only when pattern is matched
+if alertTriggered
+    alert(json_payload, alert.freq_once_per_bar_close)
