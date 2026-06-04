@@ -1,5 +1,8 @@
 <?php
 
+// Include the db.php file from one level up to access $WebsiteURL
+require_once __DIR__ . '/../db.php';
+
 header('Content-Type: application/json');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
@@ -74,6 +77,8 @@ function formatBars(array $rawBars): array {
 
 // ── Apply Pine Script Pattern Strategy & Trigger Webhook ────
 function applyStrategy(array &$candles, string $symbol): void {
+    global $WebsiteURL; // Access the website URL defined in ../db.php
+
     $streak = 0;
     $streakBullish = null;
     $streakOpen = null;
@@ -167,7 +172,9 @@ function applyStrategy(array &$candles, string $symbol): void {
             $direction = $latestBullishStreak ? 'SELL' : 'BUY';
             $targetPrice = $candles[$latestAlertIndex]['close'];
 
-            $receiverUrl = 'https://saireddy.site/receiver.php'; 
+            // Dynamically construct the receiver URL using the variable from db.php
+            // rtrim is used to safely remove any accidental trailing slashes from your variable in db.php
+            $receiverUrl = rtrim($WebsiteURL, '/') . '/receiver.php'; 
             
             $ch = curl_init($receiverUrl);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
