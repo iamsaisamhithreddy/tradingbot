@@ -1,5 +1,8 @@
 <?php
 
+// Include the db.php file from one level up to access $WebsiteURL
+require_once __DIR__ . '/../db.php';
+
 // PROJECT BY : SAI SAMHITH REDDY , DATE : 1/8/2025
 // linkedin : https://www.linkedin.com/in/saisamhithreddy
 // LEETCODE : https://leetcode.com/u/iamsaisamhithreddy/
@@ -66,6 +69,8 @@ function formatBars(array $rawBars): array
 
 function scanStrategyAndFire(array $candles, string $symbol, string $logFile) 
 {
+    global $WebsiteURL; // Access the website URL defined in ../db.php
+
     // STRIP THE SLASH FOR DATABASE (e.g., "EUR/GBP" -> "EURGBP")
     $cleanSymbol = str_replace('/', '', $symbol);
 
@@ -94,7 +99,8 @@ function scanStrategyAndFire(array $candles, string $symbol, string $logFile)
             $alertId = $pendingAlertData['alert_id'];
             
             if (!in_array($alertId, $sentAlerts)) {
-                $ch = curl_init('https://saireddy.site/receiver.php');
+                $receiverUrl = rtrim($WebsiteURL, '/') . '/receiver.php';
+                $ch = curl_init($receiverUrl);
                 curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($pendingAlertData['payload']));
                 curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
                 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -222,7 +228,7 @@ foreach ($forexPairs as $pair)
         $lastCandle = end($candles);    // Get the most recent candle
         if ($lastCandle) 
         {
-            $updateUrl = 'https://saireddy.site/update_price.php';
+            $updateUrl = rtrim($WebsiteURL, '/') . '/update_price.php';
             $payload = json_encode([
                 'pair_name' => str_replace('/', '', $pair), 
                 'current_price' => $lastCandle['close']
