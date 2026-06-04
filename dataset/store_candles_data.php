@@ -1,8 +1,8 @@
 <?php
 /**
- * Daily Candlestick Sync & Alert Cron Job
- * Fetches the latest 500 candles (M5) for all 20 currency pairs, 
- * updates live prices, scans for strategy alerts, and appends to CSV.
+ * Daily Candlestick Sync Job (CSV Tagging Only)
+ * Fetches the latest 500 candles (M5), updates live prices, 
+ * scans for strategy patterns, and tags the CSV "Pattern Alert" column.
  */
 
 // Safely require db.php (adjust path if this script is in a subfolder)
@@ -15,7 +15,6 @@ if (file_exists(__DIR__ . '/db.php')) {
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// Set content type to text/plain if accessed via web browser for cleaner logs
 if (isset($_SERVER['HTTP_HOST'])) {
     header('Content-Type: text/plain; charset=UTF-8');
 }
@@ -30,9 +29,8 @@ $forexPairs = [
 
 $limit = 500; 
 $datasetDir = __DIR__ . '/dataset';
-$alertMemoryFile = __DIR__ . '/sent_alerts_memory.txt';
 
-echo "[" . date('Y-m-d H:i:s') . "] Starting Sync & Alert Cycle...\n";
+echo "[" . date('Y-m-d H:i:s') . "] Starting Sync Cycle (CSV Tagging Only)...\n";
 echo "Dataset Directory: " . realpath($datasetDir) . "\n";
 echo "---------------------------------------------------\n";
 
@@ -75,6 +73,7 @@ function formatBars(array $rawBars): array {
             'high'  => (float)$bar['high'],
             'low'   => (float)$bar['low'],
             'close' => (float)$bar['close'],
+            'alert' => 0 // Initialize alert column as 0
         ];
     }
     return $out;
@@ -109,17 +108,12 @@ function getLastCsvTimestamp(string $filePath): int {
     return (isset($data[0]) && is_numeric($data[0])) ? (int)$data[0] : 0;
 }
 
-function scanStrategyAndFire(array $candles, string $symbol, string $logFile) 
+// Memory-only scanner: Directly mutates the $candles array by reference
+function tagStrategyAlerts(array &$candles) 
 {
-    global $WebsiteURL; 
-    $cleanSymbol = str_replace('/', '', $symbol);
     $streak = 0; $streakBullish = null; $streakOpen = null;
     $oppositeCount = 0; $waitingForConfirmation = false;
-    
     $waitingForNextClose = false;
-    $pendingAlertData = null;
-
-    $sentAlerts = file_exists($logFile) ? file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) : [];
 
     for ($i = 0; $i < count($candles); $i++) 
     {
@@ -128,26 +122,10 @@ function scanStrategyAndFire(array $candles, string $symbol, string $logFile)
         $thisBullish = $isGreen;
 
         if ($waitingForNextClose) {
-            $alertId = $pendingAlertData['alert_id'];
-            
-            if (!in_array($alertId, $sentAlerts)) {
-                $receiverUrl = rtrim($WebsiteURL, '/') . '/receiver.php';
-                $ch = curl_init($receiverUrl);
-                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($pendingAlertData['payload']));
-                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($ch, CURLOPT_TIMEOUT, 2);
-                $result = curl_exec($ch);
-                curl_close($ch);
-
-                file_put_contents($logFile, $alertId . PHP_EOL, FILE_APPEND);
-                $sentAlerts[] = $alertId;
-
-                echo " 🚨 ALERT FIRED: $cleanSymbol @ " . date('H:i', $candle['time']) . " - DB Response: " . trim($result) . "\n";
-            }
+            // TAG THE CANDLE IN MEMORY
+            $candles[$i]['alert'] = 1;
             
             $waitingForNextClose = false;
-            $pendingAlertData = null;
             $streak = 1; $streakBullish = $thisBullish; $streakOpen = $candle['open'];
             $waitingForConfirmation = false; $oppositeCount = 0;
             continue; 
@@ -190,28 +168,12 @@ function scanStrategyAndFire(array $candles, string $symbol, string $logFile)
                 }
 
                 if ($triggerAlert) {
-                    $alertId = $cleanSymbol . '_' . $candle['time'];
-                    
                     $dt = new DateTime('@' . $candle['time']);
                     $dt->setTimezone(new DateTimeZone('Asia/Kolkata'));
                     $timeInt = (int)$dt->format('Hi'); 
                     $isTimeValid = ($timeInt >= 1230 && $timeInt <= 2130);
 
-                    if ($isTimeValid && $i >= 4 && !in_array($alertId, $sentAlerts)) {
-                        $ohlcPayload = [];
-                        for ($j = 4; $j >= 0; $j--) {
-                            $c = $candles[$i - $j];
-                            $ohlcPayload[] = ['O' => $c['open'], 'H' => $c['high'], 'L' => $c['low'], 'C' => $c['close']];
-                        }
-
-                        $pendingAlertData = [
-                            'alert_id' => $alertId,
-                            'payload'  => [
-                                'ticker' => $cleanSymbol,
-                                'ohlc'   => $ohlcPayload
-                            ]
-                        ];
-                        
+                    if ($isTimeValid && $i >= 4) {
                         $waitingForNextClose = true; 
                     } else {
                         $streak = 1; $streakBullish = $thisBullish; $streakOpen = $candle['open'];
@@ -253,7 +215,7 @@ foreach ($forexPairs as $pair) {
         continue;
     }
 
-    // 2. LIVE PRICE UPDATE
+    // 2. LIVE PRICE UPDATE (Kept active for frontend terminal)
     $lastCandle = end($candles);
     if ($lastCandle && isset($WebsiteURL)) {
         $updateUrl = rtrim($WebsiteURL, '/') . '/update_price.php';
@@ -271,31 +233,25 @@ foreach ($forexPairs as $pair) {
         curl_close($chUpdate);
     }
 
-    // 3. SCAN STRATEGY & FIRE ALERTS
-    scanStrategyAndFire($candles, $pair, $alertMemoryFile);
+    // 3. SCAN STRATEGY (Tags array in memory, no webhooks fired)
+    tagStrategyAlerts($candles);
 
-    // 4. PREPARE CSV WRITE (Reload alerts memory to tag CSV correctly)
-    $alertsMap = [];
-    if (file_exists($alertMemoryFile)) {
-        $lines = file($alertMemoryFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-        foreach ($lines as $line) {
-            $alertsMap[trim($line)] = true;
-        }
-    }
-
-    // Filter new candles for CSV
+    // 4. PREPARE CSV WRITE
     $lastTimestamp = getLastCsvTimestamp($csvFilePath);
     $newCandles = [];
+    $alertFoundCount = 0;
+
     foreach ($candles as $c) {
         if ($c['time'] > $lastTimestamp) {
             $newCandles[] = $c;
+            if ($c['alert'] === 1) $alertFoundCount++;
         }
     }
     
     $newCount = count($newCandles);
     if ($newCount === 0) {
         echo "✅ Up to date.\n";
-        $summary[$pair] = "0 new (Up-to-date)";
+        $summary[$pair] = "0 new";
         continue;
     }
     
@@ -313,34 +269,23 @@ foreach ($forexPairs as $pair) {
     }
     
     foreach ($newCandles as $c) {
-        $alertKey = $cleanSymbol . '_' . $c['time'];
-        $isAlert = isset($alertsMap[$alertKey]) ? 1 : 0;
-
         fputcsv($f, [
             $c['time'],
             $c['open'],
             $c['high'],
             $c['low'],
             $c['close'],
-            $isAlert, 
+            $c['alert'], // <--- Writes 1 if pattern found, 0 if not
             0        
         ]);
     }
     fclose($f);
     
-    echo "🎉 Saved {$newCount} new candles.\n";
-    $summary[$pair] = "Appended {$newCount} candles";
+    $alertText = $alertFoundCount > 0 ? " (⚠️ {$alertFoundCount} ALERTS TAGGED)" : "";
+    echo "🎉 Saved {$newCount} new candles{$alertText}.\n";
+    $summary[$pair] = "Appended {$newCount} candles{$alertText}";
     
     usleep(500000); // 0.5s sleep to avoid hammering APIs
-}
-
-// ── 3. CLEANUP ────────────────────────────────────────────
-if (file_exists($alertMemoryFile)) {
-    $logs = file($alertMemoryFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    if (count($logs) > 2000) {
-        $logs = array_slice($logs, -1000); 
-        file_put_contents($alertMemoryFile, implode(PHP_EOL, $logs) . PHP_EOL);
-    }
 }
 
 echo "---------------------------------------------------\n";
