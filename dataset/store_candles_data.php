@@ -31,7 +31,6 @@ $limit = 500;
 $datasetDir = __DIR__ . '/dataset';
 
 echo "[" . date('Y-m-d H:i:s') . "] Starting Sync Cycle (CSV Tagging Only)...\n";
-echo "Dataset Directory: " . realpath($datasetDir) . "\n";
 echo "---------------------------------------------------\n";
 
 // ── 1. CORE FUNCTIONS ───────────────────────────────────────
