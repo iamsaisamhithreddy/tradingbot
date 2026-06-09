@@ -49,6 +49,38 @@ function fetchBarsFromCSV(string $filePath): array {
 }
 
 // ==========================================
+// 1.5. ROUTING LOGIC FOR DATASET DIRECTORIES
+// ==========================================
+function getCsvPath(string $pairName, string $alertTimeStr): string {
+    $cleanPair = str_replace(['/', '_', ' '], '', $pairName);
+    $fileName = "FX_" . $cleanPair . ".csv";
+    $timestamp = strtotime($alertTimeStr);
+    
+    $cutoffStart = strtotime('2025-06-01 00:00:00');
+    $cutoffEnd = strtotime('2026-03-01 00:00:00');
+    $ffStart = strtotime('2026-05-22 00:00:00');
+    
+    $path = '';
+    if ($timestamp < $cutoffEnd) {
+        $path = __DIR__ . "/dataset/JUN-2025 TO FEB-2026/" . $fileName;
+    } else {
+        $path = __DIR__ . "/dataset/dataset/" . $fileName;
+    }
+    
+    if (!empty($path) && file_exists($path)) {
+        return $path;
+    }
+    
+    $path1 = __DIR__ . "/dataset/dataset/" . $fileName;
+    $path2 = __DIR__ . "/dataset/JUN-2025 TO FEB-2026/" . $fileName;
+    $path3 = __DIR__ . "/dataset/" . $fileName;
+    
+    if (file_exists($path1)) return $path1;
+    if (file_exists($path2)) return $path2;
+    return $path3;
+}
+
+// ==========================================
 // 2. THE EVALUATOR
 // ==========================================
 function evaluatePatternTrade($candles, $direction, $targetPrice, $alertTimestamp, $sessionEndTimestamp) {
@@ -61,44 +93,119 @@ function evaluatePatternTrade($candles, $direction, $targetPrice, $alertTimestam
     }
     if ($alertCandleIndex === -1) return ['result' => 'pending', 'reason' => 'Waiting for CSV candle data matching alert time.'];
 
-    $consecutiveRed = 0; $consecutiveGreen = 0;
-    for ($i = 0; $i < count($candles); $i++) {
-        $c = $candles[$i];
-        if ($c['close'] < $c['open']) { $consecutiveRed++; $consecutiveGreen = 0; }
-        elseif ($c['close'] > $c['open']) { $consecutiveGreen++; $consecutiveRed = 0; }
-        else { $consecutiveRed = 0; $consecutiveGreen = 0; }
-
-        if ($i >= $alertCandleIndex) {
-            if ($c['time'] > $sessionEndTimestamp) break;
-            $waveLength = $i - $alertCandleIndex + 1;
-
-            if ($direction === 'UP' && $c['close'] < $targetPrice) {
-                if ($waveLength < 6) return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
-                if ($consecutiveRed >= 3) {
-                    $c1 = $candles[$i + 1] ?? null; $c2 = $candles[$i + 2] ?? null;
-                    if (!$c1) return ['result' => 'pending', 'reason' => 'Waiting for C1.'];
-                    if ($c1['close'] > $c1['open']) return ['result' => 'win', 'reason' => 'Direct Win.'];
-                    if (!$c2) return ['result' => 'pending', 'reason' => 'Waiting for C2.'];
-                    if ($c2['close'] > $c2['open']) return ['result' => 'win', 'reason' => 'MTG1 Win.'];
-                    return ['result' => 'loss', 'reason' => 'Failed.'];
-                }
-                return ['result' => 'setup_not_formed', 'reason' => 'Invalid streak.'];
+    $consecutiveRed = 0; 
+    $consecutiveGreen = 0;
+    
+    // Find the first opposite candle at or after the alert candle index
+    $startWaveIndex = $alertCandleIndex;
+    for ($j = $alertCandleIndex; $j < count($candles); $j++) {
+        $cTemp = $candles[$j];
+        if ($direction === 'UP') {
+            if ($cTemp['close'] < $cTemp['open']) {
+                $startWaveIndex = $j;
+                break;
             }
-
-            if ($direction === 'DOWN' && $c['close'] > $targetPrice) {
-                if ($waveLength < 6) return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
-                if ($consecutiveGreen >= 3) {
-                    $c1 = $candles[$i + 1] ?? null; $c2 = $candles[$i + 2] ?? null;
-                    if (!$c1) return ['result' => 'pending', 'reason' => 'Waiting for C1.'];
-                    if ($c1['close'] < $c1['open']) return ['result' => 'win', 'reason' => 'Direct Win.'];
-                    if (!$c2) return ['result' => 'pending', 'reason' => 'Waiting for C2.'];
-                    if ($c2['close'] < $c2['open']) return ['result' => 'win', 'reason' => 'MTG1 Win.'];
-                    return ['result' => 'loss', 'reason' => 'Failed.'];
-                }
-                return ['result' => 'setup_not_formed', 'reason' => 'Invalid streak.'];
+        } elseif ($direction === 'DOWN') {
+            if ($cTemp['close'] > $cTemp['open']) {
+                $startWaveIndex = $j;
+                break;
             }
         }
     }
+
+    $targetBroken = false;
+    
+    for ($i = 0; $i < count($candles); $i++) {
+        $c = $candles[$i];
+        if ($c['close'] < $c['open']) { 
+            $consecutiveRed++; 
+            $consecutiveGreen = 0; 
+        } elseif ($c['close'] > $c['open']) { 
+            $consecutiveGreen++; 
+            $consecutiveRed = 0; 
+        } else { 
+            $consecutiveRed = 0; 
+            $consecutiveGreen = 0; 
+        }
+
+        if ($i >= $alertCandleIndex) {
+            if ($c['time'] > $sessionEndTimestamp) {
+                break;
+            }
+            
+            // Calculate wave length starting from the first opposite candle (or fallback to alert index if current index is before it)
+            $waveLength = $i - $startWaveIndex + 1;
+            if ($i < $startWaveIndex) {
+                $waveLength = $i - $alertCandleIndex + 1;
+            }
+
+            if ($direction === 'UP') {
+                if ($c['close'] < $targetPrice) {
+                    if (!$targetBroken) {
+                        if ($waveLength < 6) {
+                            return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
+                        }
+                        $targetBroken = true;
+                    }
+                    if ($consecutiveRed >= 3) {
+                        $c1 = $candles[$i + 1] ?? null; 
+                        $c2 = $candles[$i + 2] ?? null;
+                        if (!$c1) return ['result' => 'pending', 'reason' => 'Waiting for C1.'];
+                        if ($c1['close'] > $c1['open']) {
+                            return ['result' => 'win', 'reason' => 'Direct Win.'];
+                        }
+                        if (!$c2) return ['result' => 'pending', 'reason' => 'Waiting for C2.'];
+                        if ($c2['close'] > $c2['open']) {
+                            return ['result' => 'win', 'reason' => 'MTG1 Win.'];
+                        }
+                        return ['result' => 'loss', 'reason' => 'Failed.'];
+                    }
+                }
+                // If target was already broken, but the red streak was reset (opposite candle occurred)
+                if ($targetBroken && $consecutiveRed === 0) {
+                    return ['result' => 'setup_not_formed', 'reason' => 'Invalid streak.'];
+                }
+            }
+
+            if ($direction === 'DOWN') {
+                if ($c['close'] > $targetPrice) {
+                    if (!$targetBroken) {
+                        if ($waveLength < 6) {
+                            return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
+                        }
+                        $targetBroken = true;
+                    }
+                    if ($consecutiveGreen >= 3) {
+                        $c1 = $candles[$i + 1] ?? null; 
+                        $c2 = $candles[$i + 2] ?? null;
+                        if (!$c1) return ['result' => 'pending', 'reason' => 'Waiting for C1.'];
+                        if ($c1['close'] < $c1['open']) {
+                            return ['result' => 'win', 'reason' => 'Direct Win.'];
+                        }
+                        if (!$c2) return ['result' => 'pending', 'reason' => 'Waiting for C2.'];
+                        if ($c2['close'] < $c2['open']) {
+                            return ['result' => 'win', 'reason' => 'MTG1 Win.'];
+                        }
+                        return ['result' => 'loss', 'reason' => 'Failed.'];
+                    }
+                }
+                // If target was already broken, but the green streak was reset (opposite candle occurred)
+                if ($targetBroken && $consecutiveGreen === 0) {
+                    return ['result' => 'setup_not_formed', 'reason' => 'Invalid streak.'];
+                }
+            }
+        }
+    }
+    
+    if ($targetBroken) {
+        $lastCandle = end($candles);
+        if ($lastCandle && $lastCandle['time'] >= $sessionEndTimestamp) {
+            return ['result' => 'setup_not_formed', 'reason' => 'Invalid streak.'];
+        } else {
+            return ['result' => 'pending', 'reason' => 'Waiting for setup streak to form.'];
+        }
+    }
+    
     return ['result' => 'pending', 'reason' => 'Target not broken.'];
 }
 
@@ -131,21 +238,22 @@ if ($isWeb) {
 }
 
 // FETCH TRADES
-$query = "SELECT raw_trade_id, pair_name, price_target, trade_direction, last_alert_time, trade_result 
-          FROM prediction_trade_data 
-          WHERE last_alert_time >= '{$startUTC->format('Y-m-d H:i:s')}' 
-          AND last_alert_time <= '{$endUTC->format('Y-m-d H:i:s')}'";
+$query = "SELECT p.raw_trade_id, p.pair_name, p.price_target, p.trade_direction, p.last_alert_time, p.trade_result, 
+                 UNIX_TIMESTAMP(r.created_at) AS trigger_unixtime
+          FROM prediction_trade_data p 
+          INNER JOIN raw_trade_data r ON p.raw_trade_id = r.id
+          WHERE p.last_alert_time >= '{$startUTC->format('Y-m-d H:i:s')}' 
+          AND p.last_alert_time <= '{$endUTC->format('Y-m-d H:i:s')}'";
 
 // If Cron, only check pending. (You might want this active for web too if you only want to process pending ones)
-if (!$isWeb) $query .= " AND trade_result = 'pending'";
+if (!$isWeb) $query .= " AND p.trade_result = 'pending'";
 
 $result = $conn->query($query);
 if ($result) {
     $countProcessed = 0;
     while ($trade = $result->fetch_assoc()) {
         $pair = $trade['pair_name'];
-        $cleanPair = str_replace(['/', '_', ' '], '', $pair);
-        $csvFilePath = __DIR__ . "/dataset/FX_" . $cleanPair . ".csv";
+        $csvFilePath = getCsvPath($pair, $trade['last_alert_time']);
         
         if (!file_exists($csvFilePath)) {
             if ($isWeb) echo "<span style='color:red;'>ID {$trade['raw_trade_id']} ({$pair}): Missing CSV file at {$csvFilePath}</span><br>";
@@ -159,14 +267,15 @@ if ($result) {
         }
         
         $dtUTC = new DateTime($trade['last_alert_time'], $utcTimezone);
+        $triggerTimestamp = isset($trade['trigger_unixtime']) ? (int)$trade['trigger_unixtime'] : $dtUTC->getTimestamp();
         
         // Calculate the exact 21:30 IST session end time for the specific day this trade occurred
-        $tradeDateIST = (clone $dtUTC)->setTimezone($istTimezone)->format('Y-m-d');
+        $tradeDateIST = (new DateTime("@" . $triggerTimestamp))->setTimezone($istTimezone)->format('Y-m-d');
         $sessionEndIST = new DateTime("{$tradeDateIST} 21:30:00", $istTimezone);
         $sessionEndUTC = clone $sessionEndIST;
         $sessionEndUTC->setTimezone($utcTimezone);
 
-        $eval = evaluatePatternTrade($candles, $trade['trade_direction'], (float)$trade['price_target'], $dtUTC->getTimestamp(), $sessionEndUTC->getTimestamp());
+        $eval = evaluatePatternTrade($candles, $trade['trade_direction'], (float)$trade['price_target'], $triggerTimestamp, $sessionEndUTC->getTimestamp());
         
         if ($eval['result'] !== 'pending') {
             $conn->query("UPDATE prediction_trade_data SET trade_result = '{$eval['result']}', updated_at = NOW() WHERE raw_trade_id = " . (int)$trade['raw_trade_id']);
