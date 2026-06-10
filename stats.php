@@ -1,5 +1,4 @@
 <?php
-
 require 'db.php'; 
 
 $selectedPair = isset($_GET['pair']) ? $_GET['pair'] : 'All';
@@ -8,8 +7,11 @@ $safePair = $conn->real_escape_string($selectedPair);
 // Build the SQL filter for the specific pair
 $pairFilter = ($selectedPair !== 'All') ? " AND pair_name = '$safePair'" : "";
 
+// Build the SQL filter for the specific time window (1:00 PM to 9:30 PM)
+$timeFilter = " AND TIME(COALESCE(win_loss_time, created_at)) BETWEEN '13:00:00' AND '21:30:00'";
+
 // Fetch all unique pairs
-$pairsResult = $conn->query("SELECT DISTINCT pair_name FROM prediction_trade_data WHERE pair_name != '' ORDER BY pair_name ASC");
+$pairsResult = $conn->query("SELECT DISTINCT pair_name FROM trade_outcome_details WHERE pair_name != '' ORDER BY pair_name ASC");
 
 $availablePairs = [];
 
@@ -21,14 +23,14 @@ if ($pairsResult)
     }
 }
 
-// Calculate Overall Stats 
+// Calculate Overall Stats (Filtered by Time)
 $statsSql = "SELECT 
     COUNT(*) as total_signals,
     SUM(CASE WHEN trade_result = 'win' THEN 1 ELSE 0 END) as total_wins,
     SUM(CASE WHEN trade_result = 'loss' THEN 1 ELSE 0 END) as total_losses,
     SUM(CASE WHEN trade_result = 'setup_not_formed' THEN 1 ELSE 0 END) as total_invalid
-FROM prediction_trade_data
-WHERE 1=1 $pairFilter";
+FROM trade_outcome_details
+WHERE 1=1 $pairFilter $timeFilter";
 
 $statsResult = $conn->query($statsSql);
 $stats = $statsResult->fetch_assoc();
@@ -42,29 +44,30 @@ $validTrades = $wins + $losses;
 $winRate = ($validTrades > 0) ? round(($wins / $validTrades) * 100, 2) : 0;
 
 
-// Fetch Time-Series Data for the Graph (Grouped by 30-Minute Gaps)
+// Fetch Time-Series Data for the Graph (Filtered by Time)
 $graphSql = "SELECT 
     CONCAT(
-                DATE_FORMAT(updated_at, '%h:'), 
-        LPAD(FLOOR(MINUTE(updated_at) / 30) * 30, 2, '0'), 
-        DATE_FORMAT(updated_at, ' %p')
+        DATE_FORMAT(COALESCE(win_loss_time, created_at), '%h:'), 
+        LPAD(FLOOR(MINUTE(COALESCE(win_loss_time, created_at)) / 30) * 30, 2, '0'), 
+        DATE_FORMAT(COALESCE(win_loss_time, created_at), ' %p')
     ) as display_time,
-    (HOUR(updated_at) * 60) + (FLOOR(MINUTE(updated_at) / 30) * 30) as sort_minutes,
+    (HOUR(COALESCE(win_loss_time, created_at)) * 60) + (FLOOR(MINUTE(COALESCE(win_loss_time, created_at)) / 30) * 30) as sort_minutes,
     SUM(CASE WHEN trade_result = 'win' THEN 1 ELSE 0 END) as interval_wins,
-    SUM(CASE WHEN trade_result = 'loss' THEN 1 ELSE 0 END) as interval_losses
-FROM prediction_trade_data
-WHERE trade_result IN ('win', 'loss') $pairFilter
+    SUM(CASE WHEN trade_result = 'loss' THEN 1 ELSE 0 END) as interval_losses,
+    SUM(CASE WHEN trade_result = 'setup_not_formed' THEN 1 ELSE 0 END) as interval_invalid
+FROM trade_outcome_details
+WHERE COALESCE(win_loss_time, created_at) IS NOT NULL $pairFilter $timeFilter
 GROUP BY sort_minutes, display_time
 ORDER BY sort_minutes ASC";
 
 $graphResult = $conn->query($graphSql);
-
     
 $times = [];
 $intervalWinRates = [];
-$sessionHoverLabels = []; // Array to hold the session data
-$intervalWinsArr = [];    // Array to hold wins for the tooltip
-$intervalLossesArr = [];  // Array to hold losses for the tooltip
+$intervalWinsArr = [];
+$intervalLossesArr = [];
+$intervalInvalidArr = [];
+$sessionHoverLabels = []; 
 
 // Session Timings (IST)
 $marketSessions = [
@@ -73,7 +76,6 @@ $marketSessions = [
     "London"   => ["12:30", "21:30"],
     "New York" => ["17:30", "02:30"],
 ];
-
 
 if ($graphResult) 
 {
@@ -84,8 +86,10 @@ if ($graphResult)
         
         $times[] = $row['display_time'];
         $intervalWinRates[] = $intervalRate;
+        
         $intervalWinsArr[] = $row['interval_wins'];
         $intervalLossesArr[] = $row['interval_losses'];
+        $intervalInvalidArr[] = $row['interval_invalid'];
 
         // SESSION CALCULATION  
         $h = floor($row['sort_minutes'] / 60);
@@ -100,7 +104,6 @@ if ($graphResult)
                 if ($time24 >= $start && $time24 < $end) $activeSessions[] = $name;
             } else 
             {
-                // Handle New York crossing midnight
                 if ($time24 >= $start || $time24 < $end) $activeSessions[] = $name;
             }
         }
@@ -118,32 +121,30 @@ if ($graphResult)
     }
 }
 
-// Fetch Pair-wise Table Data
-
+// Fetch Pair-wise Table Data (Filtered by Time)
 $tableSql = "SELECT 
     pair_name,
     COUNT(*) as total_signals,
     SUM(CASE WHEN trade_result = 'win' THEN 1 ELSE 0 END) as pair_wins,
     SUM(CASE WHEN trade_result = 'loss' THEN 1 ELSE 0 END) as pair_losses,
     SUM(CASE WHEN trade_result = 'setup_not_formed' THEN 1 ELSE 0 END) as pair_invalid
-FROM prediction_trade_data
-WHERE pair_name != '' $pairFilter
+FROM trade_outcome_details
+WHERE pair_name != '' $pairFilter $timeFilter
 GROUP BY pair_name
 ORDER BY pair_wins DESC, pair_losses ASC";
 
 $tableResult = $conn->query($tableSql);
 
-// Fetch Day of the Week Table Data 
-
+// Fetch Day of the Week Table Data (Filtered by Time)
 $daySql = "SELECT 
-    DAYNAME(updated_at) as day_name,
-    DAYOFWEEK(updated_at) as day_num,
+    DAYNAME(COALESCE(win_loss_time, created_at)) as day_name,
+    DAYOFWEEK(COALESCE(win_loss_time, created_at)) as day_num,
     COUNT(*) as total_signals,
     SUM(CASE WHEN trade_result = 'win' THEN 1 ELSE 0 END) as day_wins,
     SUM(CASE WHEN trade_result = 'loss' THEN 1 ELSE 0 END) as day_losses,
     SUM(CASE WHEN trade_result = 'setup_not_formed' THEN 1 ELSE 0 END) as day_invalid
-FROM prediction_trade_data
-WHERE updated_at IS NOT NULL $pairFilter
+FROM trade_outcome_details
+WHERE COALESCE(win_loss_time, created_at) IS NOT NULL $pairFilter $timeFilter
 GROUP BY day_name, day_num
 ORDER BY day_num ASC";
 
@@ -155,7 +156,7 @@ $dayResult = $conn->query($daySql);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trading Performance Stats</title>
+    <title>Trading Performance Stats (1 PM - 9:30 PM)</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
@@ -176,6 +177,11 @@ $dayResult = $conn->query($daySql);
             margin-bottom: 30px;
         }
         h2 { margin: 0; }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 14px;
+            margin-top: 5px;
+        }
         
         .filter-form select {
             background-color: #1e293b;
@@ -280,7 +286,10 @@ $dayResult = $conn->query($daySql);
 <div class="dashboard">
     
     <div class="header-controls">
-        <h2>Algorithm Performance by Time</h2>
+        <div>
+            <h2>Algorithm Performance by Time</h2>
+            <div class="subtitle">Filtered constraint: 1:00 PM - 9:30 PM (IST)</div>
+        </div>
         <form class="filter-form" method="GET" action="">
             <select name="pair" onchange="this.form.submit()">
                 <option value="All" <?php if($selectedPair === 'All') echo 'selected'; ?>>All Pairs</option>
@@ -341,7 +350,6 @@ $dayResult = $conn->query($daySql);
                         $pValid = $pWins + $pLosses;
                         $pWinRate = ($pValid > 0) ? round(($pWins / $pValid) * 100, 2) : 0;
 
-                        // Color for win rate text
                         $rateColor = ($pWinRate >= 70) ? '#10b981' : (($pWinRate >= 50) ? '#ffb703' : '#ef4444');
 
                         echo "<tr>";
@@ -355,7 +363,7 @@ $dayResult = $conn->query($daySql);
                     }
                 } else 
                 {
-                    echo "<tr><td colspan='6' style='text-align: center; color: #64748b;'>No trade data available.</td></tr>";
+                    echo "<tr><td colspan='6' style='text-align: center; color: #64748b;'>No trade data available in this time frame.</td></tr>";
                 }
                 ?>
             </tbody>
@@ -389,7 +397,6 @@ $dayResult = $conn->query($daySql);
                         $dValid = $dWins + $dLosses;
                         $dWinRate = ($dValid > 0) ? round(($dWins / $dValid) * 100, 2) : 0;
 
-                        // Color for  win rate text
                         $rateColor = ($dWinRate >= 70) ? '#10b981' : (($dWinRate >= 50) ? '#ffb703' : '#ef4444');
 
                         echo "<tr>";
@@ -402,7 +409,7 @@ $dayResult = $conn->query($daySql);
                         echo "</tr>";
                     }
                 } else {
-                    echo "<tr><td colspan='6' style='text-align: center; color: #64748b;'>No day data available.</td></tr>";
+                    echo "<tr><td colspan='6' style='text-align: center; color: #64748b;'>No day data available in this time frame.</td></tr>";
                 }
                 ?>
             </tbody>
@@ -412,16 +419,15 @@ $dayResult = $conn->query($daySql);
 </div>
 
 <script>
-
 const labels = <?php echo json_encode($times); ?>;
 const dataPoints = <?php echo json_encode($intervalWinRates); ?>;
 const sessionData = <?php echo json_encode($sessionHoverLabels); ?>; 
+
 const winsData = <?php echo json_encode($intervalWinsArr); ?>;
 const lossesData = <?php echo json_encode($intervalLossesArr); ?>;
+const invalidData = <?php echo json_encode($intervalInvalidArr); ?>;
 
 const ctx = document.getElementById('winRateChart').getContext('2d');
-
-// Creating Chart
 
 new Chart(ctx, {
     type: 'line',
@@ -452,7 +458,6 @@ new Chart(ctx, {
                 labels: 
                 { 
                     color: '#f8fafc' 
-                    
                 }
             },
             tooltip: 
@@ -463,12 +468,13 @@ new Chart(ctx, {
                     {
                         return context.parsed.y + '% Win Rate';
                     },
-                    
                     afterLabel: function(context) {
-                        let idx = context.dataIndex;
+                        const idx = context.dataIndex;
                         return [
-                            '✅ Wins: ' + winsData[idx] + ' | ❌ Losses: ' + lossesData[idx],
-                            '🌍 ' + sessionData[idx]
+                            '🌍 ' + sessionData[idx],
+                            '✅ Wins: ' + winsData[idx],
+                            '❌ Losses: ' + lossesData[idx],
+                            '⚠️ Not Formed: ' + invalidData[idx]
                         ];
                     }
                 }
@@ -484,14 +490,11 @@ new Chart(ctx, {
                     color: '#334155' 
                 },
                 ticks: {
-                    color: '#94a3b8', callback: function(value) 
-                    { return value + '%' 
-                        
-                    } 
+                    color: '#94a3b8', 
+                    callback: function(value) { return value + '%' } 
                 }
             },
             x: {
-
                 grid: { color: '#334155', display: false },
                 ticks: { color: '#94a3b8' }
             }
