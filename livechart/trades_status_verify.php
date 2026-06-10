@@ -100,7 +100,7 @@ function evaluatePatternTrade($candles, $direction, $targetPrice, $alertTimestam
             if ($direction === 'UP') {
                 if ($c['close'] < $targetPrice) {
                     if (!$targetBroken) {
-                        if ($waveLength < 6) {
+                        if ($waveLength < 3) { // 6 candle logic , after 2 candle confirmation , 1 candle price broken, hence 3 candles
                             return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
                         }
                         $targetBroken = true;
@@ -128,7 +128,7 @@ function evaluatePatternTrade($candles, $direction, $targetPrice, $alertTimestam
             if ($direction === 'DOWN') {
                 if ($c['close'] > $targetPrice) {
                     if (!$targetBroken) {
-                        if ($waveLength < 6) {
+                        if ($waveLength < 3) { // 6 candle logic , after 2 candle confirmation , 1 candle price broken, hence 3 candles
                             return ['result' => 'setup_not_formed', 'reason' => 'Too fast.'];
                         }
                         $targetBroken = true;
