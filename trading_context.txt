@@ -1,0 +1,12 @@
+TRADING SETUP (GLOBAL)
+
+Market: Forex
+Timeframe: 5 Minutes
+
+RULES:
+- Trade only after 4 consecutive same-color candles
+- Entry only after confirmation candle close
+- Ignore trades during high-impact news
+- No new indicators allowed
+- No timeframe changes
+- No financial advice

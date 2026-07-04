@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Binary Trading Bot – Setup Manual</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #0b0f19;
+        color: #dbe2ef;
+        padding: 25px;
+        max-width: 900px;
+        margin: auto;
+        line-height: 1.6;
+    }
+    .card {
+        background: #111725;
+        padding: 18px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        border-left: 4px solid #38bdf8;
+        box-shadow: 0 0 6px black;
+    }
+    h1, h2, h3 { color: #38bdf8; }
+    .code-box {
+        background:#1a2236;
+        padding:15px;
+        border-radius:8px;
+        border:1px solid #2e3a5b;
+        overflow-x:auto;
+        font-size: 14px;
+    }
+    button.copy {
+        background:#38bdf8;
+        border:none;
+        padding:7px 13px;
+        border-radius:6px;
+        cursor:pointer;
+        font-weight:bold;
+        margin-bottom:8px;
+    }
+    .warn {
+        background:#242f4a;
+        padding:10px;
+        border-left:4px solid #f87171;
+        border-radius:6px;
+        font-size:14px;
+    }
+    .tip {
+        background:#1e293b;
+        padding:10px;
+        border-left:4px solid #facc15;
+        border-radius:6px;
+        font-size:14px;
+    }
+</style>
+</head>
+<body>
+
+<!-- Toast JS -->
+<script>
+function showToast(msg) {
+    let toast = document.createElement("div");
+    toast.innerText = msg;
+    toast.style.position = "fixed";
+    toast.style.bottom = "20px";
+    toast.style.right = "20px";
+    toast.style.background = "#38bdf8";
+    toast.style.color = "#0b0f19";
+    toast.style.padding = "10px 15px";
+    toast.style.borderRadius = "6px";
+    toast.style.fontWeight = "bold";
+    toast.style.boxShadow = "0 0 8px black";
+    document.body.appendChild(toast);
+    setTimeout(()=> toast.remove(), 2000);
+}
+</script>
+
+<h1>Binary Trading Bot Setup (5 Minute Timeframe)</h1>
+
+<div class="tip">Run the Pine script provided when an alert triggers, it sends POST request as JSON.</div>
+
+<!-- Step 0 -->
+<div class="card">
+<h2>Step-0. Create Telegram Bot & Setup Webhook</h2>
+<div class="code-box"><pre>https://api.telegram.org/botBOT_TOKEN/setWebhook?url=YOUR_WEBSITE/webhook.php</pre></div>
+<button class="copy" onclick="navigator.clipboard.writeText(`https://api.telegram.org/botBOT_TOKEN/setWebhook?url=YOUR_WEBSITE/webhook.php`); showToast('✅ Copied Successfully!')">Copy Webhook URL</button>
+<div class="warn">⚠ Remove "" when using the real link.</div>
+</div>
+
+<!-- Step 1 -->
+<div class="card">
+<h2>Step-1. Paste Pine Script into TradingView</h2>
+
+<h3>Main Pine Script</h3>
+<div class="code-box"><pre id="pine_main">
+//@version=5
+indicator("SEND TO DB", overlay=true)
+
+var int streak = 0
+var bool streakBullish = na
+var float streakOpen = na
+var int oppositeCount = 0
+var bool waitingForConfirmation = false
+var bool alertTriggered = false
+
+// Candle direction
+isGreen = close > open
+isRed = close < open
+thisBullish = isGreen
+
+// Reset alert each bar
+alertTriggered := false
+
+if not waitingForConfirmation
+    if streak == 0
+        streak := 1
+        streakBullish := thisBullish
+        streakOpen := open
+    else if thisBullish == streakBullish
+        streak += 1
+        streakOpen := open
+    else
+        if streak >= 4
+            waitingForConfirmation := true
+            oppositeCount := 1
+            if (streakBullish and low <= streakOpen) or (not streakBullish and high >= streakOpen)
+                streak := 1
+                streakBullish := thisBullish
+                streakOpen := open
+                waitingForConfirmation := false
+                oppositeCount := 0
+        else
+            streak := 1
+            streakBullish := thisBullish
+            streakOpen := open
+else
+    if thisBullish != streakBullish
+        oppositeCount += 1
+        if oppositeCount > 2
+            streak := 1
+            streakBullish := thisBullish
+            waitingForConfirmation := false
+            oppositeCount := 0
+            streakOpen := open
+    else
+        if oppositeCount == 2
+            if (streakBullish and low <= streakOpen) or (not streakBullish and high >= streakOpen)
+                streak := 1
+                streakBullish := thisBullish
+                waitingForConfirmation := false
+                oppositeCount := 0
+                streakOpen := open
+            else
+                alertTriggered := true
+                streak := 1
+                streakBullish := thisBullish
+                waitingForConfirmation := false
+                oppositeCount := 0
+                streakOpen := open
+        else if oppositeCount == 1
+            alertTriggered := true
+            streak := 1
+            streakBullish := thisBullish
+            waitingForConfirmation := false
+            oppositeCount := 0
+            streakOpen := open
+
+// Plot shape on chart
+plotshape(alertTriggered, title="Pattern Alert", location=location.abovebar, style=shape.labelup, color=color.orange, size=size.small, text="ALERT")
+
+json_payload = '{"ticker":"' + syminfo.ticker + '","time":"' + str.tostring(time, "yyyy-MM-dd HH:mm") + '","ohlc":[' +
+               '{"O":' + str.tostring(open[4]) + ',"H":' + str.tostring(high[4]) + ',"L":' + str.tostring(low[4]) + ',"C":' + str.tostring(close[4]) + '},' +
+               '{"O":' + str.tostring(open[3]) + ',"H":' + str.tostring(high[3]) + ',"L":' + str.tostring(low[3]) + ',"C":' + str.tostring(close[3]) + '},' +
+               '{"O":' + str.tostring(open[2]) + ',"H":' + str.tostring(high[2]) + ',"L":' + str.tostring(low[2]) + ',"C":' + str.tostring(close[2]) + '},' +
+               '{"O":' + str.tostring(open[1]) + ',"H":' + str.tostring(high[1]) + ',"L":' + str.tostring(low[1]) + ',"C":' + str.tostring(close[1]) + '},' +
+               '{"O":' + str.tostring(open) + ',"H":' + str.tostring(high) + ',"L":' + str.tostring(low) + ',"C":' + str.tostring(close) + '}' +
+               ']}'
+
+if alertTriggered
+    alert(json_payload, alert.freq_once_per_bar_close)
+</pre></div>
+
+<button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('pine_main').innerText); showToast('✅ Copied Successfully!')">Copy Main Pine Script</button>
+</div>
+
+<!-- Step 2 to 8 -->
+<div class="card">
+<h2>Step-2 to Step-8 Setup</h2>
+<div class="step">Step-3. Setup database connection (db.php) – add server details, bot token and admin chat id</div>
+<div class="step">Step-4. Run setup.php to setup tables and admin login – creates required tables</div>
+<div class="step">Step-5. Go back to TradingView alerts</div>
+<div class="step">Step-6. Set webhook URL as: <b>yourwebsite.site/receiver.php</b></div>
+<div class="step">Step-7. Admin dashboard open via <b>admin_dashboard.php</b></div>
+<div class="step">Step-8. Alerts are triggered via <b>tg.php</b> or <b>webhook.php</b></div>
+</div>
+
+<!-- Step 9 -->
+<div class="card">
+<h2>Step-9. Add Latest Price Indicator</h2>
+
+<div class="code-box"><pre id="pine_latest">
+//@version=5
+indicator("Send Latest Price to DB", overlay=false)
+
+// Only need a trigger, message comes from alert box
+alertcondition(true, title="Send Latest Price")
+
+plot(close)
+</pre></div>
+
+<button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('pine_latest').innerText); showToast('✅ Copied Successfully!')">Copy Latest Price Pine Script</button>
+
+<h3>Message JSON code</h3>
+<div class="code-box"><pre id="json_payload">{
+  "pair_name": "{{ticker}}",
+  "current_price": {{close}}
+}</pre></div>
+
+<button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('json_payload').innerText); showToast('✅ Copied Successfully!')">Copy JSON</button>
+
+
+
+
+
+
+<!-- GitHub News Automation -->
+<div class="card">
+<h2>Economic News Automation (GitHub Cron)</h2>
+
+<div class="tip">
+This system uses <b>GitHub Actions as a free VPS</b>.  
+News is fetched automatically every 5 minutes and sent to your database.
+</div>
+
+<h3>How it Works</h3>
+<ul>
+  <li>GitHub runs a cron job every 5 minutes (UTC)</li>
+  <li>Python scraper fetches economic calendar data</li>
+  <li>Parsed events are sent to <b>insert_event.php</b></li>
+  <li>No browser, no Google Script, no manual trigger</li>
+</ul>
+
+<hr>
+
+<h3>1️⃣ GitHub Workflow (calendar-cron.yml)</h3>
+
+<div class="code-box"><pre id="calendar-cron.yml">
+name: Economic Calendar Cron
+
+on:
+  schedule:
+    - cron: "30 3 * * *"    # 9:00 AM IST
+    - cron: "0 8 * * *"     # 1:30 PM IST
+    - cron: "0 12 * * *"    # 5:30 PM IST
+    - cron: "0 15 * * *"    # 8:30 PM IST
+  workflow_dispatch:
+
+jobs:
+  run-calendar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libatk-bridge2.0-0 \
+            libatk1.0-0 \
+            libcups2 \
+            libxcomposite1 \
+            libxdamage1 \
+            libxrandr2 \
+            libgbm1 \
+            libasound2t64 \
+            libpangocairo-1.0-0 \
+            libxkbcommon0
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install chromium
+
+      - name: Run scraper (single execution)
+        run: |
+          echo "⏱ Running scraper once"
+          python scraper.py
+</pre></div>
+
+<button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('calendar-cron.yml').innerText); showToast('✅ Copied Successfully!')">Copy CODE</button>
+
+
+<hr>
+
+<h3>2️⃣ Python Requirements (requirements.txt)</h3>
+
+<div class="code-box"><pre>
+requests
+pytz
+playwright
+</pre></div>
+
+<div class="warn">
+⚠ Playwright is used only if the site blocks normal requests.
+</div>
+
+<hr>
+
+<h3>3️⃣ Python Scraper (scraper.py)</h3>
+
+<div class="code-box"><pre id="python_code">
+import requests
+import pytz
+from datetime import datetime
+
+INSERT_URL = "https://your.site/insert_event.php"
+
+def send_event(event_name, impact, event_time):
+    payload = {
+        "event_name": event_name,
+        "impact": impact,
+        "event_time": event_time,
+        "sent_status": 0
+    }
+    requests.post(INSERT_URL, data=payload, timeout=15)
+
+def main():
+    # Example data (replace with real parser logic)
+    now_ist = datetime.now(pytz.timezone("Asia/Kolkata"))
+    event_time = now_ist.strftime("%Y-%m-%d %H:%M:%S")
+
+    send_event(
+        event_name="[USD] Sample Economic Event",
+        impact=1,
+        event_time=event_time
+    )
+
+if __name__ == "__main__":
+    main()
+</pre></div>
+
+<button class="copy" onclick="navigator.clipboard.writeText(document.getElementById('python_code').innerText); showToast('✅ Copied Successfully!')">Copy CODE</button>
+
+<hr>
+
+<h3>4️⃣ Timezone Info</h3>
+
+<div class="tip">
+GitHub cron runs in <b>UTC</b>.  
+All event times are converted to <b>IST (GMT+5:30)</b> inside Python.
+</div>
+
+<hr>
+
+<h3>5️⃣ Run Frequency</h3>
+
+<div class="code-box"><pre>
+*/5 * * * *   → every 5 minutes
+</pre></div>
+
+<div class="warn">
+GitHub does NOT allow 1-minute cron jobs.<br>
+Minimum is 5 minutes (this is a GitHub limitation).
+</div>
+
+<hr>
+
+<h3>6️⃣ Manual Run (Testing)</h3>
+
+<div class="tip">
+Go to:<br>
+<b>GitHub → Actions → Economic Calendar Cron → Run workflow</b><br>
+This lets you test instantly without waiting.
+</div>
+
+<hr>
+
+
+
+
+<h3>Webhook URL</h3>
+<div class="code-box"><pre>https://your.site/update_price.php</pre></div>
+
+<div class="tip">Finally click on SAVE ✅</div>
+</div>
+
+</body>
+</html>

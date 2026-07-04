@@ -1,0 +1,19 @@
+# Binaries
+ffmpeg
+ffmpeg.exe
+
+# Sensitive config — fill in your own details before deploying
+db.php
+
+# Setup script — delete from server after first use, don't push
+setup.php
+
+# Uploads & generated files
+uploads/
+*.png
+*.wav
+*.pdf
+
+# OS files
+.DS_Store
+Thumbs.db
