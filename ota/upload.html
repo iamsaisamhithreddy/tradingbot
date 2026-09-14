@@ -1,0 +1,446 @@
+<?php
+
+if (!isset($_SESSION['admin_logged_in'])) {
+    header('Location: login.php'); // redirecting to login page if not logged in
+    exit;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ESP32 OTA — Firmware Update</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            --bg:        #0f1117;
+            --surface:   #1a1d27;
+            --border:    #2a2d3a;
+            --accent:    #f97316;
+            --accent-dim:#7c3a12;
+            --green:     #22c55e;
+            --green-dim: #14532d;
+            --red:       #ef4444;
+            --red-dim:   #7f1d1d;
+            --blue:      #3b82f6;
+            --blue-dim:  #1e3a5f;
+            --text:      #e2e8f0;
+            --muted:     #64748b;
+            --mono:      'JetBrains Mono', monospace;
+            --sans:      'Inter', sans-serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--sans);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+        }
+
+        /* ── Header ── */
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .header .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px 12px;
+            font-family: var(--mono);
+            font-size: 0.72rem;
+            color: var(--accent);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+        .header .chip::before {
+            content: '';
+            width: 7px; height: 7px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50%      { opacity: 0.3; }
+        }
+        .header h1 {
+            font-family: var(--mono);
+            font-size: 1.6rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #fff;
+        }
+        .header h1 span { color: var(--accent); }
+        .header p {
+            margin-top: 6px;
+            color: var(--muted);
+            font-size: 0.875rem;
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 480px;
+            overflow: hidden;
+        }
+
+        /* ── Warning banner ── */
+        .warning {
+            background: rgba(249,115,22,0.08);
+            border-bottom: 1px solid rgba(249,115,22,0.2);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.82rem;
+            color: var(--accent);
+            font-weight: 500;
+        }
+        .warning svg { flex-shrink: 0; }
+
+        /* ── Steps ── */
+        .steps { padding: 24px 24px 0; }
+
+        .step {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .step-num {
+            flex-shrink: 0;
+            width: 28px; height: 28px;
+            border-radius: 50%;
+            background: var(--border);
+            border: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--muted);
+            transition: all 0.3s;
+        }
+        .step.active .step-num {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .step.done .step-num {
+            background: var(--green);
+            border-color: var(--green);
+            color: #fff;
+        }
+        .step-body { flex: 1; padding-top: 3px; }
+        .step-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 8px;
+        }
+        .step.active .step-label { color: var(--accent); }
+        .step.done   .step-label { color: var(--green); }
+
+        /* ── File drop zone ── */
+        .dropzone {
+            border: 2px dashed var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+        .dropzone:hover, .dropzone.drag { border-color: var(--accent); background: rgba(249,115,22,0.04); }
+        .dropzone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+        .dropzone .icon { font-size: 1.8rem; margin-bottom: 6px; }
+        .dropzone .dz-text { font-size: 0.82rem; color: var(--muted); }
+        .dropzone .dz-text b { color: var(--text); }
+        .dropzone .file-name {
+            margin-top: 8px;
+            font-family: var(--mono);
+            font-size: 0.78rem;
+            color: var(--accent);
+            display: none;
+        }
+
+        /* ── Buttons ── */
+        .btn {
+            width: 100%;
+            padding: 13px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: var(--sans);
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-upload  { background: var(--blue);  color: #fff; }
+        .btn-trigger { background: var(--green); color: #fff; }
+        .btn-cancel  { background: transparent; color: var(--red); border: 1px solid var(--red-dim); }
+        .btn-cancel:hover { background: rgba(239,68,68,0.08); }
+
+        /* ── Progress bar ── */
+        .progress-wrap {
+            height: 4px;
+            background: var(--border);
+            border-radius: 99px;
+            overflow: hidden;
+            margin-top: 10px;
+            display: none;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--blue);
+            border-radius: 99px;
+            transition: width 0.3s;
+        }
+
+        /* ── Status ── */
+        .status {
+            margin: 0 24px 24px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-family: var(--mono);
+            font-size: 0.8rem;
+            line-height: 1.6;
+            display: none;
+        }
+        .status.ok   { background: rgba(34,197,94,0.08);  border: 1px solid rgba(34,197,94,0.2);  color: var(--green); }
+        .status.err  { background: rgba(239,68,68,0.08);  border: 1px solid rgba(239,68,68,0.2);  color: var(--red);   }
+        .status.info { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); color: var(--blue);  }
+
+        /* ── Divider ── */
+        .divider {
+            height: 1px;
+            background: var(--border);
+            margin: 0 24px 24px;
+        }
+
+        /* ── Action section ── */
+        .actions { padding: 0 24px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+        /* ── Footer ── */
+        .footer {
+            margin-top: 20px;
+            font-size: 0.75rem;
+            color: var(--muted);
+            text-align: center;
+            font-family: var(--mono);
+        }
+        .footer span { color: var(--accent); }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="chip">Remote OTA</div>
+    <h1>ESP32 <span>Firmware</span> Update</h1>
+    <p>Flash new firmware from anywhere — no USB, no same network needed.</p>
+</div>
+
+<br>
+Steps:
+
+1. Create a New sketch 
+<br>2. Make sure partition is still Minimal SPIFFS (1.9MB APP with OTA/128KB SPIFFS)
+<br>3.Sketch → Export Compiled Binary → get the .bin (ex: sketch_aug10a.ino.bin)
+<br>4.Upload that .bin here
+<br>5.Click Trigger Flash
+<br>6.Wait 1 minute (OTA check interval)
+<br>7.ESP32 downloads, flashes, reboots
+<br>8.Serial monitor should show the respected output.
+
+
+<div class="card">
+    <div class="warning">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        STOP the bot on the dashboard before flashing
+    </div>
+
+    <div class="steps">
+
+        <!-- STEP 1 -->
+        <div class="step active" id="step1">
+            <div class="step-num">1</div>
+            <div class="step-body">
+                <div class="step-label">Upload firmware to server</div>
+                <div class="dropzone" id="dropzone">
+                    <input type="file" id="binFile" accept=".bin" onchange="onFileChange(this)">
+                    <div class="icon">📦</div>
+                    <div class="dz-text"><b>Choose .bin file</b> or drag it here</div>
+                    <div class="file-name" id="fileName"></div>
+                </div>
+                <div class="progress-wrap" id="progressWrap">
+                    <div class="progress-bar" id="progressBar"></div>
+                </div>
+                <br>
+                <button class="btn btn-upload" id="btnUpload" onclick="uploadBin()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Upload firmware.bin to server
+                </button>
+            </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="step" id="step2">
+            <div class="step-num">2</div>
+            <div class="step-body">
+                <div class="step-label">Trigger the ESP32 to flash</div>
+                <button class="btn btn-trigger" id="btnTrigger" onclick="triggerFlash()" disabled>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Flash now — ESP32 will reboot within 1 min
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="status" id="status"></div>
+    <div class="divider"></div>
+
+    <div class="actions">
+        <button class="btn btn-cancel" onclick="cancelFlash()">
+            ✖ Cancel pending flash / clear flag
+        </button>
+    </div>
+</div>
+
+<div class="footer">
+    Polling interval: <span>60s</span> &nbsp;·&nbsp; Firmware served from <span>tradeedify.site/ota/</span>
+</div>
+
+<script>
+    // ── File selection ──
+    function onFileChange(input) {
+        const f = input.files[0];
+        if (!f) return;
+        document.getElementById('fileName').style.display = 'block';
+        document.getElementById('fileName').innerText = f.name + ' (' + (f.size / 1024).toFixed(1) + ' KB)';
+        document.getElementById('btnUpload').disabled = false;
+    }
+
+    // Drag-over style
+    const dz = document.getElementById('dropzone');
+    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag'));
+    dz.addEventListener('drop', e => {
+        e.preventDefault(); dz.classList.remove('drag');
+        const f = e.dataTransfer.files[0];
+        if (f && f.name.endsWith('.bin')) {
+            document.getElementById('binFile').files = e.dataTransfer.files;
+            onFileChange(document.getElementById('binFile'));
+        }
+    });
+
+    function setStatus(msg, cls) {
+        const s = document.getElementById('status');
+        s.style.display = 'block';
+        s.className = 'status ' + cls;
+        s.innerText = msg;
+    }
+
+    function setStep(n) {
+        document.getElementById('step1').className = 'step' + (n === 1 ? ' active' : n > 1 ? ' done' : '');
+        document.getElementById('step2').className = 'step' + (n === 2 ? ' active' : n > 2 ? ' done' : '');
+    }
+
+    // ── Upload .bin to server ──
+    async function uploadBin() {
+        const f = document.getElementById('binFile').files[0];
+        if (!f) { alert('Select a .bin file first'); return; }
+
+        document.getElementById('btnUpload').disabled = true;
+        document.getElementById('progressWrap').style.display = 'block';
+        setStatus('Uploading ' + f.name + '...', 'info');
+
+        const fd = new FormData();
+        fd.append('firmware', f);
+
+        try {
+            // XHR for upload progress
+            await new Promise((resolve, reject) => {
+                const xhr = new XMLHttpRequest();
+                xhr.open('POST', 'upload.php');
+                xhr.upload.onprogress = e => {
+                    if (e.lengthComputable) {
+                        document.getElementById('progressBar').style.width = (e.loaded / e.total * 100) + '%';
+                    }
+                };
+                xhr.onload = () => {
+                    try {
+                        const j = JSON.parse(xhr.responseText);
+                        if (j.status === 'ok') {
+                            document.getElementById('progressBar').style.width = '100%';
+                            document.getElementById('progressBar').style.background = '#22c55e';
+                            setStatus('✅ Uploaded — ' + (j.size / 1024).toFixed(1) + ' KB on server.\nNow click "Flash now" below.', 'ok');
+                            setStep(2);
+                            document.getElementById('btnTrigger').disabled = false;
+                            resolve();
+                        } else {
+                            reject(j.message);
+                        }
+                    } catch(e) { reject(xhr.responseText); }
+                };
+                xhr.onerror = () => reject('Network error');
+                xhr.send(fd);
+            });
+        } catch(e) {
+            setStatus('❌ Upload failed: ' + e, 'err');
+            document.getElementById('btnUpload').disabled = false;
+        }
+    }
+
+    // ── Trigger flash ──
+    async function triggerFlash() {
+        document.getElementById('btnTrigger').disabled = true;
+        try {
+            const r = await fetch('trigger.php?action=set&state=1', { cache: 'no-store' });
+            const t = await r.text();
+            setStatus('🔥 Flash triggered!\n\nESP32 will detect this within 60 seconds, download the firmware, flash itself, and reboot.\n\nSerial monitor will show:\n  OTA UPDATE TRIGGERED\n  OTA Success!\n  [rebooting...]', 'ok');
+            setStep(3);
+        } catch(e) {
+            setStatus('❌ Could not set flag: ' + e, 'err');
+            document.getElementById('btnTrigger').disabled = false;
+        }
+    }
+
+    // ── Cancel / clear flag ──
+    async function cancelFlash() {
+        try {
+            await fetch('trigger.php?action=clear', { cache: 'no-store' });
+            setStatus('Flag cleared. ESP32 will not flash on next poll.', 'info');
+            document.getElementById('btnTrigger').disabled = false;
+            setStep(1);
+        } catch(e) {
+            setStatus('❌ Error: ' + e, 'err');
+        }
+    }
+</script>
+</body>
+</html>
