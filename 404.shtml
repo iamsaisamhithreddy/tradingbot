@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Page Not Found</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .error-container {
+            background: #ffffff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            font-size: 72px;
+            color: #e74c3c;
+            margin: 0 0 10px;
+        }
+        h2 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        p {
+            color: #7f8c8d;
+            font-size: 15px;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .home-btn {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 12px 25px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+        .home-btn:hover {
+            background-color: #2980b9;
+        }
+        .error-details {
+            margin-top: 20px;
+            font-size: 13px;
+            color: #95a5a6;
+            border-top: 1px solid #ecf0f1;
+            padding-top: 15px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="error-container">
+        <h1>404</h1>
+        <h2>Page Not Found</h2>
+        <p>The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.</p>
+        
+        <a href="https://tradeedify.in" class="home-btn">Back to Homepage</a>
+
+        <div class="error-details">
+            <strong>Requested URL:</strong> <!--#echo var="REQUEST_URI" --><br>
+            <strong>Your Browser:</strong> <!--#echo var="HTTP_USER_AGENT" --><br>
+            <strong>Your IP:</strong> <!--#echo var="REMOTE_ADDR" --><br>
+        </div>
+    </div>
+
+</body>
+</html>

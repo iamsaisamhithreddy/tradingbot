@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ESP32 Forex Bot — Control</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #eef2f5; padding: 2rem; max-width: 620px; margin: auto; }
+        .header-box { background: #1e293b; color: white; padding: 22px; border-radius: 8px 8px 0 0; text-align: center; }
+        .header-box h2 { margin: 0; font-size: 1.5rem; }
+        .header-box p { margin: 6px 0 0 0; color: #94a3b8; font-size: 0.9rem; }
+        .container { background: white; padding: 28px; border-radius: 0 0 8px 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+
+        .state-pill { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.1rem; padding: 10px 18px; border-radius: 999px; }
+        .dot { width: 12px; height: 12px; border-radius: 50%; }
+        .state-running { background: #ecfdf5; color: #065f46; }
+        .state-running .dot { background: #10b981; box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
+        .state-stopped { background: #fef2f2; color: #991b1b; }
+        .state-stopped .dot { background: #ef4444; }
+        .state-unknown { background: #f1f5f9; color: #475569; }
+        .state-unknown .dot { background: #94a3b8; }
+
+        .status-row { text-align: center; margin-bottom: 22px; }
+        .changed { color: #64748b; font-size: 0.82rem; margin-top: 8px; }
+
+        .btn-row { display: flex; gap: 14px; }
+        button { flex: 1; color: white; border: none; padding: 18px; font-size: 17px; border-radius: 8px; cursor: pointer; font-weight: 700; transition: all 0.15s; }
+        button:hover { transform: translateY(-1px); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-start { background: #10b981; }
+        .btn-start:hover { background: #059669; }
+        .btn-stop { background: #ef4444; }
+        .btn-stop:hover { background: #dc2626; }
+
+        .note { margin-top: 22px; padding: 14px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #475569; font-size: 0.85rem; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+    <div class="header-box">
+        <h2>📈 ESP32 Forex Bot</h2>
+        <p>Remote start / stop — works over the internet, no Bluetooth needed.</p>
+    </div>
+
+    <div class="container">
+        <div class="status-row">
+            <div id="pill" class="state-pill state-unknown">
+                <span class="dot"></span><span id="stateText">Checking…</span>
+            </div>
+            <div class="changed" id="changed"></div>
+        </div>
+
+        <div class="btn-row">
+            <button class="btn-start" id="btnStart" onclick="setState(1)">START</button>
+            <button class="btn-stop"  id="btnStop"  onclick="setState(0)">STOP</button>
+        </div>
+
+        <div class="note">
+            The device checks this page every ~15 seconds, so a change can take up to that long to take effect.
+            The green/red status above reflects the saved flag — once the ESP32 next polls, it will match.
+        </div>
+    </div>
+
+    <script>
+        const API = 'control.php';
+
+        async function refresh() {
+            try {
+                const r = await fetch(API + '?action=status', { cache: 'no-store' });
+                const j = await r.json();
+                render(j.running, j.changed);
+            } catch (e) {
+                render('?', null);
+            }
+        }
+
+        function render(state, changed) {
+            const pill = document.getElementById('pill');
+            const txt  = document.getElementById('stateText');
+            const chg  = document.getElementById('changed');
+
+            if (state === '1') {
+                pill.className = 'state-pill state-running';
+                txt.innerText = 'RUNNING';
+            } else if (state === '0') {
+                pill.className = 'state-pill state-stopped';
+                txt.innerText = 'STOPPED';
+            } else {
+                pill.className = 'state-pill state-unknown';
+                txt.innerText = 'Unknown';
+            }
+            chg.innerText = changed && changed !== 'never' ? ('Flag last changed: ' + changed) : '';
+        }
+
+        async function setState(s) {
+            document.getElementById('btnStart').disabled = true;
+            document.getElementById('btnStop').disabled = true;
+            try {
+                await fetch(API + '?action=set&state=' + s, { cache: 'no-store' });
+                await refresh();
+            } catch (e) {
+                alert('Could not reach control.php');
+            } finally {
+                document.getElementById('btnStart').disabled = false;
+                document.getElementById('btnStop').disabled = false;
+            }
+        }
+
+        refresh();
+        setInterval(refresh, 5000);  // keep the dashboard status fresh
+    </script>
+</body>
+</html>

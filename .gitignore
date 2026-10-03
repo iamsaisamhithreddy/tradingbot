@@ -17,6 +17,3 @@ uploads/
 # OS files
 .DS_Store
 Thumbs.db
-
-# Allow README screenshots
-!docs/screenshots/*.png

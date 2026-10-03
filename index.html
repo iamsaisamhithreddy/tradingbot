@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sai Samhith Reddy | Portfolio</title>
+
+<!-- QR Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- Icons -->
+<script src="https://unpkg.com/lucide@latest"></script>
+<!-- Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+<style>
+ * {margin:0;padding:0;box-sizing:border-box;font-family:"Inter",sans-serif;transition:0.3s;}
+ body {background:#0a0f1f;color:#e6edf5;overflow-x:hidden;}
+ 
+ nav {
+   display:flex;justify-content:space-between;align-items:center;padding:18px 10%;
+   background:rgba(10,15,30,0.8);backdrop-filter:blur(10px);
+   border-bottom:1px solid rgba(255,255,255,0.07);position:fixed;width:100%;top:0;z-index:100;
+ }
+ .logo {font-size:20px;font-weight:700;color:#4fd1ff;}
+ nav ul {list-style:none;display:flex;gap:25px;}
+ nav ul li a {text-decoration:none;color:#e6edf5;font-weight:500;}
+ nav ul li a:hover {color:#4fd1ff;}
+ 
+ .hero {
+   height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;
+   text-align:center;padding:20px;margin-top:40px;
+ }
+ .hero h1 {font-size:56px;font-weight:700;color:#4fd1ff;}
+ .hero p {font-size:18px;max-width:640px;margin-top:10px;opacity:0.8;line-height:1.6;}
+ 
+ .social {
+   display:flex;gap:20px;margin-top:22px;flex-wrap:wrap;justify-content:center;
+ }
+ .social a {
+   width:46px;height:46px;border-radius:50%;background:#11172e;display:flex;align-items:center;justify-content:center;
+   color:#4fd1ff;
+ }
+ .social a:hover {transform:translateY(-5px);box-shadow:0 0 18px rgba(79,209,255,0.4);}
+ 
+ .btn {
+   margin-top:32px;padding:14px 28px;background:#4fd1ff;color:#0a0f1f;border:none;border-radius:8px;
+   font-weight:600;cursor:pointer;font-size:16px;
+ }
+ .btn:hover {transform:scale(1.07);box-shadow:0 0 20px rgba(79,209,255,0.25);}
+ 
+ .section {
+   padding:110px 10% 50px;text-align:center;
+ }
+ .section h2 {font-size:38px;font-weight:700;color:#4fd1ff;margin-bottom:8px;}
+ 
+ .grid {
+   display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;margin-top:40px;
+ }
+ 
+ .card {
+   background:#11172e;padding:24px;border-radius:14px;border:1px solid rgba(255,255,255,0.08);
+   box-shadow:0 4px 10px rgba(0,0,0,0.3);position:relative;overflow:hidden;
+ }
+ 
+ .card:hover {transform:translateY(-10px);border-color:#4fd1ff;box-shadow:0 6px 20px rgba(79,209,255,0.12);}
+ 
+ .badges {
+   display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:14px;
+ }
+ .badges span {
+   background:#0a2a43;padding:6px 12px;font-size:13px;border-radius:6px;border:1px solid #4fd1ff33;opacity:0.9;
+ }
+ 
+ /* TRADING ANIMATION + QR */
+ .trade-bar {
+   height:4px;width:0%;background:#4fd1ff;margin-top:12px;border-radius:6px;box-shadow:0 0 10px #4fd1ff22;
+ }
+ .card:hover .trade-bar {width:100%;animation:glow 0.8s infinite alternate;}
+ @keyframes glow {from{box-shadow:0 0 6px #4fd1ff;} to{box-shadow:0 0 16px #88e7ff;}}
+ 
+ #tradeQR {
+   margin-top:12px;padding:12px;background:white;border-radius:10px;width:max-content;margin:auto;
+   opacity:0;transform:translateY(10px);border:4px solid #4fd1ff11;box-shadow:0 0 16px rgba(79,209,255,0.1);
+ }
+ .card:hover #tradeQR {opacity:1;transform:translateY(0);animation:fadeUp 0.5s ease forwards;}
+ 
+ @keyframes fadeUp {to{opacity:1;}}
+ 
+ /* LINKEDIN FEED */
+ .feed-container {
+   width:100%;overflow:hidden;margin-top:32px;padding:24px 0;position:relative;
+   background:#11172e;border-radius:14px;border:1px solid rgba(79,209,255,0.12);
+   box-shadow:0 2px 20px rgba(79,209,255,0.05);
+ }
+ .feed-track {
+   display:flex;gap:26px;animation:scrollFeed 30s linear infinite;width:max-content;padding:0 10px;
+ }
+ .feed-container:hover .feed-track {animation-play-state:paused;}
+ 
+ .feed-card iframe {
+   width:340px;height:230px;border-radius:12px;border:3px solid #4fd1ff44;box-shadow:0 0 12px rgba(79,209,255,0.05);
+ }
+ 
+ @keyframes scrollFeed {from{transform:translateX(0);} to{transform:translateX(-40%);}}
+ 
+ /* Fade effect on edges */
+ .feed-container::before,
+ .feed-container::after {
+   content:"";position:absolute;top:0;bottom:0;width:90px;z-index:2;
+ }
+ .feed-container::before{left:0;background:linear-gradient(to right,#0a0f1f,transparent);}
+ .feed-container::after{right:0;background:linear-gradient(to left,#0a0f1f,transparent);}
+ 
+ footer {
+   text-align:center;padding:30px;background:#030818;font-size:15px;opacity:0.7;
+   border-top:1px solid rgba(255,255,255,0.04);margin-top:40px;
+ }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Sai Samhith</div>
+  <ul>
+    <li><a href="#work">Work</a></li>
+    <li><a href="#projects">Projects</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Sai Samhith Reddy</h1>
+  <p>
+    Cybersecurity undergrad with 4+ years of market trading experience.  
+    I build bots, apps, and admin dashboards that are fast, functional, and secure.
+  </p>
+
+  <div class="social">
+    <a href="mailto:iamsaisamhithreddy@gmail.com"><i data-lucide="mail"></i></a>
+    <a href="#" target="_blank" onclick="window.open('https://www.linkedin.com/in/saisamhithreddy/','_blank')">
+      <i data-lucide="linkedin"></i>
+    </a>
+    <a href="#" target="_blank" onclick="window.open('https://github.com/iamsaisamhithreddy/','_blank')">
+      <i data-lucide="github"></i>
+    </a>
+  </div>
+
+  <a href="#" class="btn" onclick="document.getElementById('work').scrollIntoView()">Explore My Work</a>
+</section>
+
+<!-- WORK -->
+<section class="section" id="work">
+  <h2>Expertise</h2>
+  <div class="grid">
+
+    <div class="card">
+      <i data-lucide="candlestick-chart" class="trade-icon"></i>
+      <h3>Trading & Bot Research</h3>
+      <p>4+ years designing strategies, indicators, and automated alerts.</p>
+      <div id="tradeQR"></div>
+      <div class="trade-bar"></div>
+    </div>
+
+    <div class="card">
+      <i data-lucide="smartphone"></i>
+      <h3>App Development</h3>
+      <p>Android and cross-platform apps with automation focus.</p>
+      <div class="badges"><span>Flutter</span><span>React Native</span><span>Android</span></div>
+    </div>
+
+    <div class="card">
+      <i data-lucide="server"></i>
+      <h3>Web Administrator</h3>
+      <p>Managing servers, DB systems, deployment & security.</p>
+      <div class="badges"><span>Linux</span><span>Apache</span><span>MySQL</span><span>DevOps</span></div>
+    </div>
+
+    <div class="card">
+      <i data-lucide="monitor-code"></i>
+      <h3>Web Development</h3>
+      <p>Responsive UI and backend system building.</p>
+      <div class="badges"><span>HTML</span><span>CSS</span><span>PHP</span><span>JS</span></div>
+    </div>
+
+  </div>
+</section>
+
+<!-- PROJECTS -->
+<section class="section" id="projects">
+  <h2>Live Projects</h2>
+  <div class="grid" style="margin-top:28px;">
+
+    <div class="card">
+      <i data-lucide="bot"></i>
+      <h3>Telegram Trading Bot</h3>
+      <p>Automated alerts, strategy insights, analytics.</p>
+      <div id="projectQR"></div>
+      <div class="project-box">Scan to Open Bot</div>
+    </div>
+
+    <div class="card">
+      <i data-lucide="github"></i>
+      <h3>GitHub</h3>
+      <p>Security tools & automation scripts.</p>
+      <a href="#" class="button" onclick="window.open('https://github.com/iamsaisamhithreddy/','_blank')">Visit GitHub</a>
+    </div>
+
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="section" id="contact">
+  <h2>Let’s Connect</h2>
+  <p style="font-size:17px;opacity:0.8;margin-top:10px;">Reach out via email or socials below.</p>
+  <div class="grid" style="margin-top:28px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));">
+    <div class="card"><i data-lucide="mail"></i><h3>Email</h3><p>iamsaisamhithreddy@gmail.com</p></div>
+    <div class="card"><i data-lucide="linkedin"></i><h3>LinkedIn</h3><p>saisamhithreddy</p></div>
+    <div class="card"><i data-lucide="github"></i><h3>GitHub</h3><p>iamsaisamhithreddy</p></div>
+  </div>
+</section>
+
+<footer>Built & maintained by Sai Samhith Reddy ❤️</footer>
+
+<script>
+// Generate QR for Trading Bot (Project section)
+new QRCode(document.getElementById("projectQR"), {
+  text: "t.me/sasmhithstradingbot", width:140, height:140
+});
+</script>
+<script>lucide.createIcons();</script>
+
+</body>
+</html>
